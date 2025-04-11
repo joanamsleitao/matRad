@@ -6,8 +6,9 @@ function [matRadFileName, ct, cst, pln, stf, resultGUI] = matRadJoana_importDico
 % pathToFolder = 'C:\Users\joana\OneDrive\Documentos\PhD\KIT_IBT\Ablation\PatientTrial_CAUG_002_FromKielh';
 dcmImpObj = matRad_DicomImporter(pathToFolder);
 
+matRad_importDicom(dcmImpObj);
 % allfiles = dcmImpObj.allfiles;
-patients = dcmImpObj.patient;
+patients = dcmImpObj.patients;
 
 % [allfiles,patients] = matRad_scanDicomImportFolder("C:\Users\joana\OneDrive\Documentos\PhD\KIT_IBT\Ablation\PatientTrial_CAUG_002_FromKielh"); %MatRad will also be able to separate multiple patients, but this example will only work if there's only a single patient in the folder.
 
