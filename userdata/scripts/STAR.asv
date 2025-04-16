@@ -1,0 +1,144 @@
+%% Code for the STAR Project
+% Joana Leitão, created Jan.2025; updated March.2025
+%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This main script should
+% 1) Import dicom files from an average CT, RTSTRUCT and RTDOSE
+%       to create a ct, cst and resultGUI
+%   OR
+%   load equivalent structures from a .mat file
+%
+% 2) Get some reference dose metrics from the resultGUI
+%
+% 3) Create a plan equivalent based on the resultGUI, but with
+%       access to all of the structures we need to apply it to
+%       the different phase CTs
+%
+% 4) Optimize penalties to get original doseCube and replicated doseCube to match
+%
+% 5) Compare original resultGUI with mimicked resultGUI, with
+%       a high degree of similarities
+%
+% % % %
+% 4) Get ct of each phase
+%
+% 5) Apply dij/resultGUI to each phase-ct, with NO OPTIMIZATION
+%
+% 6) Export RTDOSE of each phase
+%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear all; clc; dbstop if error
+
+% add matRad folder and subfolder into path
+addpath(genpath('C:\Users\joana\MATLAB_ALL\matRad'))
+% activate matRad
+matRad_rc
+
+% add Ablation folder and subfolder into path
+addpath(genpath('C:\Users\joana\OneDrive\Documentos\PhD\KIT_IBT\Ablation'))
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 1) Import
+pathToFolder = "C:\Users\joana\OneDrive\Documentos\PhD\KIT_IBT\Ablation\PatientTrial_CAUG_002_FromKielh";
+% [matRadFileName] = matRadJoana_importDicom(pathToFolder);
+% load(matRadFileName, 'ct', 'cst', 'resultGUI');
+load(append(pathToFolder, '\matRadPatientCAUG_002.mat'), 'ct', 'cst', 'resultGUI' );
+% matRadJoana_ShowSliceFast(ct, cst, resultGUI.physicalDose);
+
+cstPat = cst;
+doseCubePat = resultGUI.physicalDose;
+prescribedDose = cstPat{find(strcmp(cstPat(:,2), 'PTV'), 1), 6}{1, 1}.parameters{1};
+
+clear cst resultGUI
+%%
+% 2)
+
+if find(strcmp(cstPat(:,2), 'BODY'))~= 0 %|| find(strcmp(cst(:,2), 'EXTERNAL'))
+    if (find(strcmp(cstPat(:,2), 'BODY')) + find(strcmp(cstPat(:,2), 'EXTERNAL'))) > 1
+        sprintf('Error: there are two outlines defined')
+    end
+    ixBody = find(strcmp(cstPat(:,2), 'BODY'), 1);
+    % + ~isempty(find(strcmp(cstPat(:,2), 'EXTERNAL'),1));
+    cstPat{ixBody, 3}  = 'EXTERNAL';
+    cstPat{ixBody, 5}.Priority  = size(cstPat,1)+3; % ensure that BODY has the lowest priority
+end
+
+% Assume 1 fraction as we do not have RTPlan
+pln.numOfFractions = 1;
+
+% Get prescribedDose
+% prescribedDose = round(qi(find(strcmp(cst(:,2), 'PTV'), 1)).D_95);
+% OR
+% prescribedDose = 25; % from protocol
+ixPTV = find(strcmp(cstPat(:,2), 'PTV'), 1);
+prescribedDose = cstPat{ixPTV, 6}{1, 1}.parameters{1};
+
+penalty = 50; % Base penalty
+refGy = [20];
+refVol = [];
+
+qiPat = matRadJoana_calcQualityIndicators(cstPat,pln,doseCubePat);
+ixPTV = find(strcmp(cstPat(:,2), 'PTV'), 1);
+
+[cstPat, qiOg] = matRadJoana_replicateCstFromDoseCube(cstPat, pln, doseCubePat, ...
+    prescribedDose, penalty, refGy, []);
+
+minDoseGoalPTV = floor(qiPat(ixPTV).D_98);
+maxDoseGoalPTV = ceil(qiPat(ixPTV).D_2);
+
+cst = [cstPat(1, :); cstPat(2, :); cstPat(3, :); ...
+    cstPat(5, :); cstPat(6, :); cstPat(7, :); cstPat(9, :); ...
+    cstPat(12, :); cstPat(20, :); cstPat(23, :);];
+ixPTV = find(strcmp(cst(:,2), 'PTV'), 1);
+
+%% 3) Create equivalent plan
+pln.radiationMode   = 'photons';
+pln.machine = 'Generic';
+pln.numOfFractions  = 1;
+
+pln.bioModel = 'none';
+pln.multScen = 'nomScen';
+
+pln.propStf.gantryAngles    =  [270:-15:0]; % [270:-5:0];
+pln.propStf.couchAngles     = zeros(1,numel(pln.propStf.gantryAngles));
+pln.propStf.bixelWidth      = 5;
+
+pln.propStf.numOfBeams   = numel(pln.propStf.gantryAngles);
+pln.propStf.isoCenter    = matRad_getIsoCenter(cst,ct,0);
+
+resolution = 20;
+pln.propDoseCalc.doseGrid.resolution.x = resolution; % [mm]
+pln.propDoseCalc.doseGrid.resolution.y = resolution; % [mm]
+pln.propDoseCalc.doseGrid.resolution.z = resolution; % [mm]
+
+% stf = matRad_generateStf(ct, cst, pln);
+% dij = matRad_calcDoseInfluence(ct, cst, stf, pln);
+% OR
+load("trial_stf_dij_19beams_grid20.mat")
+% Try with lower resolution!!!
+
+% Perform Fluence Optimization
+resultGUIInit = matRad_fluenceOptimization(dij, cst, pln);
+doseCubeInit = resultGUIInit.physicalDose;
+wInit = resultGUIInit.w;
+clear resultGUIInit
+
+qiInit = matRadJoana_calcQualityIndicators(cst,pln,doseCubeInit,refGy,refVol);
+min = qiInit(10).D_98
+max = qiInit(10).D_2
+
+if qiInit(ixPTV).D_98 > minDoseGoalPTV && qiInit(ixPTV).D_2 < maxDoseGoalPTV
+    % qiInit(ixPTV).D_98 > minDoseGoalPTV && qiInit(ixPTV).D_2 < maxDoseGoalPTV
+    sprintf('We did it!!')
+else
+    sprintf('We have to do the other way:(((((!!')
+    sprintf(['Ups ', num2str(qiInit(ixPTV).D_98), ' and ', num2str(qiInit(ixPTV).D_2)])
+end
+
+%% 4) Optimize penalties to get original doseCube and replicated doseCube to match
+
+[doseCubeOpt, wOpt, qi_Opt] = matRadJoana_findBestDoseCubeMatch(cst, pln, [minDoseGoalPTV maxDoseGoalPTV], dij, doseCubeInit, wInit, qiInit);
+
+matRadJoana_ShowSliceFast(ct, cst, doseCubePat); title('doseCubeOg')
+matRadJoana_ShowSliceFast(ct, cst, doseCubeInit); title('doseCubeOpt')
+matRadJoana_ShowSliceFast(ct, cst, [doseCubePat - doseCubeInit]); title('doseCubeOg - doseCubeOpt')
