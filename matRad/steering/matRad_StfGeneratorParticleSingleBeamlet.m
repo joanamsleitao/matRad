@@ -135,6 +135,16 @@ classdef matRad_StfGeneratorParticleSingleBeamlet < matRad_StfGeneratorParticleR
             elseif ~isempty(this.energy)
                 [~,ix] = min(abs(this.energy-this.availableEnergies));                
                 useEnergy = this.availableEnergies(ix);
+
+                [values, ixx] = mink(abs(this.energy-this.availableEnergies),10);
+                disp('These are the 10 available energies closest to your suggestion:')
+                disp(this.availableEnergies(ixx))
+                prompt = 'Please input one energy:';
+                useEnergy = input(prompt);
+
+                [~,ix] = min(abs(useEnergy-this.availableEnergies));                
+                useEnergy = this.availableEnergies(ix);
+
             else
                 % compute radiological depths
                 % http://www.ncbi.nlm.nih.gov/pubmed/4000088, eq 14
