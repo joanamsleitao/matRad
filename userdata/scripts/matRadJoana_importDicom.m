@@ -27,7 +27,7 @@ patients = dcmImpObj.patients;
 % %We need to set one more variable I forgot to mention above
 % importFiles.useDoseGrid = false;
 
-dcmImpObj.patient = dcmImpObj.patient{1, 1};
+dcmImpObj.patients = dcmImpObj.patients{1, 1};
 % matRad_importDicom(dcmImpObj);
 
 matRad_importDicom(dcmImpObj);
