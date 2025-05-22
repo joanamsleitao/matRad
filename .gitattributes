@@ -1,0 +1,12 @@
+# Auto-detect text files and normalize (LF in repo).
+* text=auto
+# Force files to be binary
+*.mat binary
+*.pdf binary
+*.mex* binary
+*.zip binary
+*.dll binary
+*.exe binary
+# Ensure .m files are never marked as executable
+*.m -x
+*.bin filter=lfs diff=lfs merge=lfs -text
