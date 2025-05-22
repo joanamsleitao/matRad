@@ -1,1 +1,0 @@
-The HU to SPR conversion is set to the matRad default HU lookup table for consistency with the conversion used for dose calculation by the PBA.
