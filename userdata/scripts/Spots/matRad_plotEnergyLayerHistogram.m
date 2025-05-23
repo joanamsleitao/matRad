@@ -1,13 +1,30 @@
 function matRad_plotEnergyLayerHistogram(ax, stf)
-% matRad_plotEnergyLayerHistogram: Plots number of spots per energy layer per beam.
+% matRad_plotEnergyLayerHistogram - Plot a histogram of spot counts per energy layer, per beam.
 %
-% INPUT:
-%   ax  - axes handle
-%   stf - struct with treatment fields (containing perSpot info)
+% This function visualizes the number of proton (or ion) therapy spots
+% delivered at each energy layer, separated by beam. It is useful for
+% understanding how energy layers are distributed across multiple fields.
 %
-% This function groups spots by energy per beam, and displays a histogram
-% of the number of spots per energy layer, per beam, with consistent colors.
-
+% INPUTS:
+%   ax  - Axes handle where the histogram will be drawn.
+%   stf - Struct array containing scanned beam treatment fields. Each field
+%         should contain .ray and .rayTracerInfo.perSpot with energy values.
+%
+% OUTPUT:
+%   A histogram is drawn on the provided axes. Each beam is plotted with a
+%   different color, showing how many spots correspond to each energy value.
+%
+% NOTES:
+% - The histogram groups spot counts by energy per beam.
+% - Each beam is assigned a color from MATLAB’s `lines` colormap.
+% - Energies are sorted numerically along the x-axis.
+%
+% Example usage:
+%   figure;
+%   ax = gca;
+%   matRad_plotEnergyLayerHistogram(ax, stf);
+%
+%%
 if isempty(ax) || ~isvalid(ax)
     warning('Invalid or missing axes handle. Nothing will be plotted.');
     return;

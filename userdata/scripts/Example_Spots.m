@@ -72,6 +72,23 @@ ylim(ax2, ylimValsRay);
 axis equal;
 title(sprintf('Beam %d, Ray %d Spot View (Zoomed)', iBeam, iRay));
 
+% 7. Plot representative spot per energy layer (per beam)
+% --------------------------------------------------------
+% Shows one spot per energy layer (most weighted), using color for energy and
+% shape for beam. Optionally shows Siddon ray paths.
+figure;
+ax3 = gca;
+matRad_plotEnergyLayerPerWeight(ax3, ct, stf, 8);
+axis equal;
+title('Representative Spots per Energy Layer (Per Beam)');
+
+% 8. Plot histogram of spot counts per energy layer (per beam)
+% ------------------------------------------------------------
+% Visualizes how many spots exist per energy for each beam.
+figure;
+ax4 = gca;
+matRad_plotEnergyLayerHistogram(ax4, stf);
+
 % =========================================================================
 % End of example
 % =========================================================================

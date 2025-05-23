@@ -1,5 +1,7 @@
 function medianSpotCube = matRad_plotSpotsSlice(ax, ct, stf, markerSize, weights, showRayTracing, useGeoSpots)
-% matRad_plotSpotsSliceJ Visualizes spot positions with weights and optional ray tracing.
+% matRad_plotSpotsSlice Visualizes all spot positions with weights and optional ray tracing.
+%
+% if weight == 0, then spot will have a tiny marker
 %
 % INPUTS:
 %   ax, ct, stf - axes handle, CT structure, treatment plan struct
@@ -75,7 +77,11 @@ for iBeam = 1:numBeams
         for iSpot = 1:numSpots
             wIx = matRad_spotIx(stf, iBeam, iRay, iSpot);
             w = weights(wIx)/wMax;
-            mSize = markerSize * w;
+            if w == 0
+                mSize = markerSize * 0.01;
+            else
+                mSize = markerSize * w;
+            end
             energy = stf(iBeam).ray(iRay).energy(iSpot);
             colorIdx = mod(energyToColorMap(energy)-1, size(colors,1)) + 1;
             c = colors(colorIdx, :);
