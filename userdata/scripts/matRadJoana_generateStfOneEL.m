@@ -1,5 +1,4 @@
 function [stf_oneEL, stf_mb, stf_sb] = matRadJoana_generateStfOneEL(ct, cst, pln)
-disp('Result function called!');
 %% Generate Beam Geometry STF
 % pln.propStf.addMargin    = false; %to make smaller stf, les bixel
 % create multi energy stf

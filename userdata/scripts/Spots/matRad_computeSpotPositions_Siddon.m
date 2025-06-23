@@ -104,7 +104,7 @@ for iBeam = 1:numBeams
         end
 
         % Loop over all spot energies assigned to this ray
-        numSpots = numel(rayEnergy);
+        numSpots = stf(iBeam).numOfBixelsPerRay(iRay);
         for iSpot = 1:numSpots
             thisEnergy = rayEnergy(iSpot);                    % Energy for current spot
 
@@ -153,11 +153,12 @@ for iBeam = 1:numBeams
 
             spots(iSpot) = spotStruct;                         % Add spot to list
             % spotsInfoAll(iSpotsAll) = spotStruct;           % Optional: collect globally
-            iSpotsAll = iSpotsAll+1;                           % Increment global counter
+            iSpotsAll = iSpotsAll+numSpots;                           % Increment global counter
         end
 
         rayTracerInfo.perSpot = spots;                         % Add per-spot info to rayTracerInfo
         stf(iBeam).ray(iRay).rayTracerInfo = rayTracerInfo;    % Update STF with full rayTracerInfo
+        clear spotStruct spots
     end
 
     clear spots                                               % Clear spot buffer before next beam

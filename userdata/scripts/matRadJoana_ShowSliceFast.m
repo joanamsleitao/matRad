@@ -1,4 +1,4 @@
-function [slice] = matRadJoana_ShowSliceFast(ct, cst, doseCube, slice)
+function [slice] = matRadJoana_ShowSliceFast(ct, cst, doseCube, slice, doseWindow)
 %Call matRadJoana_ShowSliceFast(ct, cst, resultGUI.physicalDose)
 
 if ~exist('slice','var') || isempty(slice)
@@ -7,6 +7,16 @@ if ~exist('slice','var') || isempty(slice)
 else
     slice = slice;
 end
+
+if ~exist('doseWindow','var') || isempty(doseWindow)
+   doseWindow = [];
+% else
+%     doseWindow = [min(doseCube(:)) max(doseCube(:))];
+end
+
+% if ~isempty(doseWindow) && doseWindow(2) - doseWindow(1) <= 0
+%     doseWindow = [0 2];
+% end
 
 plane = 3;
 
@@ -20,7 +30,16 @@ if nargin < 3 || isempty(doseCube)
 
 else
     % matRad_plotSliceWrapper(gca,ct,cst,1,doseCube,3,slice);
-matRad_plotSliceWrapper(gca,ct,cst,1,doseCube,3,slice, [], [], [], [], [], [0 30]);
+    boolPlotLegend = 1;
+% matRad_plotSliceWrapper(gca,ct,cst,1,doseCube,3,slice, [], [], [], [], [], [0 30]);
+% [hCMap,hDose,hCt,hContour,hIsoDose] = 
+matRad_plotSliceWrapper(axesHandle,ct,cst,1,doseCube,3,slice,...
+                                                    [], [], [],...
+                                                    [], doseWindow, [], [],...
+                                                    [],boolPlotLegend);
 
+hleg = axesHandle.Legend;
+hleg.FontSize = 10;
+hleg.Location = 'bestoutside';
 end
 end

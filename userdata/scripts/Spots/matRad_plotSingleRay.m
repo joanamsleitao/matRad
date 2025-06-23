@@ -33,10 +33,10 @@ function medianSpotCube = matRad_plotSingleRay(ax, stf, iRayTarget, markerSize, 
 %
 %   EXAMPLE USAGE:
 %       figure; ax = axes;
-%       matRad_plotSingleRay(ax, ct, stf, 12, 6, weights, true);
+%       matRad_plotSingleRay(ax, stf, iRay, 6, weights, 1);
 %
 %   See also: matRad_plotSpotsSliceJ, matRad_world2cubeIndex, matRad_spotIx
-%
+%   
 %%
 % --- Handle defaults ---
 if ~exist('markerSize','var') || isempty(markerSize)
@@ -81,8 +81,12 @@ for iBeam = 1:numel(stf)
 
             for iSpot = 1:numSpots
                 wIx = matRad_spotIx(stf, iBeam, iRay, iSpot);
-                w = weights(wIx) / wMax;
-                mSize = markerSize * w;
+                if weights(wIx)==0
+                    mSize = 0.2;
+                else
+                    w = weights(wIx) / wMax;
+                    mSize = markerSize * w;
+                end
 
                 energy = ray.energy(iSpot);
                 colorIdx = mod(energyToColorMap(energy)-1, size(colors,1)) + 1;
@@ -93,7 +97,7 @@ for iBeam = 1:numel(stf)
             raySpotCubes{end+1} = spot; % Collect for median calc
 
                 h = plot(ax, spot(1), spot(2), shape, ...
-                    'Color', c, 'MarkerSize', mSize, 'LineWidth', 1.2);
+                     'MarkerEdgeColor', c, 'MarkerSize', mSize, 'LineWidth', 1.2);
                 if ~isKey(usedEnergies, energy)
                     usedEnergies(energy) = h;
                 end

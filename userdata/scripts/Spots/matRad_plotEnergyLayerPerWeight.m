@@ -11,7 +11,7 @@ function matRad_plotEnergyLayerPerWeight(ax, ct, stf, markerSize, machine, showR
 %   ax            - Axes handle where the plot will be drawn.
 %   ct            - CT struct used for coordinate transformations.
 %   stf           - Struct containing the scanned beam treatment plan (with .ray and .rayTracerInfo fields).
-%   markerSize    - (Optional) Size of the spot markers. Default is 6.
+%   markerSize    - (Optional) Base size of the spot markers. Default is 6.
 %   machine       - (Optional) Machine struct defining energy layers and settings.
 %                   If not provided, the function attempts to load it using stf.machine and stf.radiationMode.
 %   showRayTracing - (Optional) Boolean flag to plot ray paths used for dose computation. Default is false.
@@ -25,34 +25,21 @@ function matRad_plotEnergyLayerPerWeight(ax, ct, stf, markerSize, machine, showR
 % NOTE:
 % - Each spot is plotted using CT voxel indices (in-plane only).
 % - Legend entries are organized first by increasing energy, then by beam.
-%
-% Example usage:
-%   figure;
-%   ax = gca;
-%   matRad_plotEnergyLayerPerWeight(ax, ct, stf);
-%
-%%
-% Load machine if not provided
+
+if nargin < 4 || isempty(markerSize)
+    markerSize = 6;
+end
 if nargin < 5 || isempty(machine)
     machineFileName = append(stf.radiationMode, '_', stf.machine);
     machine = load(machineFileName);
     machine = machine.machine;
 end
-
-if ~exist('markerSize','var') || isempty(markerSize)
-    markerSize = 6;
-end
-if ~exist('showRayTracing','var') || isempty(showRayTracing)
+if nargin < 6 || isempty(showRayTracing)
     showRayTracing = false;
 end
 
-%%
-% % Energy list for machine (e.g., protons_generic)
-% machineEnergies = [31.7289801158557;36.7985653919357;41.3788233252735;... % shorten if needed
-%                    234.958213631876;236.107017981299];
-machineEnergies = [machine.data(:).energy];
+% Get energy color map
 energyColorMap = matRad_getMachineEnergyColorMap(stf);
-
 shapes = {'o', '+', 's', '^', 'v', 'x', 'd', 'p', 'h', '*'};
 numBeams = numel(stf);
 hold(ax, 'on');
@@ -63,7 +50,6 @@ usedBeams = struct();
 for iBeam = 1:numBeams
     shape = shapes{mod(iBeam-1, numel(shapes)) + 1};
     rayList = stf(iBeam).ray;
-
     energySpots = struct();
 
     for iRay = 1:numel(rayList)
@@ -100,53 +86,46 @@ for iBeam = 1:numBeams
         weights = energySpots.(key).weights;
 
         [~, maxIdx] = max(weights);
-        repSpot = spots(maxIdx, :);  % most weighted
+        repSpot = spots(maxIdx, :);
+        repWeight = weights(maxIdx);
+
+        scaledMarkerSize = markerSize + 10 * repWeight;
 
         if isKey(energyColorMap, e)
             c = energyColorMap(e);
         else
-            c = [0.5,0.5,0.5]; % fallback gray
+            c = [0.5,0.5,0.5];
         end
 
-        plot(ax, repSpot(1), repSpot(2), shape, ...
-            'Color', c, 'MarkerSize', markerSize, 'LineWidth', 1.5);
+        plot(ax, repSpot(1), repSpot(2), shape, 'Color', c, 'MarkerSize', scaledMarkerSize, 'LineWidth', 1.5);
 
-        % Legend handles
         energyKey = strrep(sprintf('e%.4f', e), ".", "_");
         if ~isfield(usedEnergies, energyKey)
-            usedEnergies.(energyKey) = plot(ax, NaN, NaN, 'o', ...
-                'Color', c, 'MarkerFaceColor', c, ...
-                'MarkerSize', 8, 'LineWidth', 1.5);
+            usedEnergies.(energyKey) = plot(ax, NaN, NaN, 'o', 'Color', c, 'MarkerFaceColor', c, 'MarkerSize', 8, 'LineWidth', 1.5);
         end
     end
 
     beamKey = sprintf('beam%d', iBeam);
     if ~isfield(usedBeams, beamKey)
-        usedBeams.(beamKey) = plot(ax, NaN, NaN, shape, ...
-            'Color', 'k', 'MarkerSize', 8, 'LineWidth', 1.5);
+        usedBeams.(beamKey) = plot(ax, NaN, NaN, shape, 'Color', 'k', 'MarkerSize', 8, 'LineWidth', 1.5);
     end
 end
 
 % Sort energy keys numerically
 energyFields = fieldnames(usedEnergies);
-energyVals = cellfun(@(f) str2double(erase(f, 'e')), energyFields);
+energyVals = cellfun(@(f) str2double(strrep(f, 'e', '')), energyFields);
 [~, sortedIdx] = sort(energyVals);
 sortedEnergyFields = energyFields(sortedIdx);
-
 beamFields = fieldnames(usedBeams);
 
-% Build legend
 legendLabels = {};
 legendHandles = [];
 
 for i = 1:numel(sortedEnergyFields)
-    energyStr = erase(sortedEnergyFields{i}, 'e');
-    energyStr = strrep(energyStr, '_', '.');
+    energyStr = strrep(strrep(sortedEnergyFields{i}, 'e', ''), '_', '.');
     legendLabels{end+1} = ['Energy ' energyStr];
     legendHandles(end+1) = usedEnergies.(sortedEnergyFields{i});
 end
-%    energyStr = erase(strrep(sortedEnergyFields{i}, ".", "_"), 'e');
-
 for i = 1:numel(beamFields)
     legendLabels{end+1} = ['Beam ' strrep(beamFields{i}, 'beam', '')];
     legendHandles(end+1) = usedBeams.(beamFields{i});
@@ -158,4 +137,24 @@ xlabel(ax, 'X (voxel index)');
 ylabel(ax, 'Y (voxel index)');
 axis(ax, 'equal');
 grid(ax, 'on');
+
+% Add weight scale bar
+addWeightScaleBar(ax, markerSize);
+
+end
+
+function addWeightScaleBar(ax, baseSize)
+    axPos = get(ax, 'Position');
+    insetAx = axes('Position', [axPos(1)+0.05, axPos(2)+axPos(4)-0.15, 0.15, 0.15]);
+    hold(insetAx, 'on'); box(insetAx, 'on');
+
+    weights = [0.2, 0.5, 1.0];
+    for i = 1:length(weights)
+        sz = baseSize + 10 * weights(i);
+        plot(insetAx, i, 1, 'ko', 'MarkerSize', sz, 'MarkerFaceColor', 'k');
+        text(insetAx, i, 0.6, sprintf('w=%.1f', weights(i)), 'HorizontalAlignment', 'center', 'FontSize', 8);
+    end
+    axis(insetAx, [0.5, length(weights)+0.5, 0.4, 1.6]);
+    axis(insetAx, 'off');
+    title(insetAx, 'Weight scale');
 end
