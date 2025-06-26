@@ -150,8 +150,9 @@ for iBeam = 1:numBeams
         fieldname = ['ray_', num2str(iRay)];
         rayStruct.(fieldname) = spots;
         stf(iBeam).ray(iRay).spotsInfoGeo = spots;
+
+            clear spots
     end
 
-    clear spots
 end
 end

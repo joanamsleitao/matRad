@@ -1,94 +1,109 @@
-function matRad_plotEnergyLayerHistogramCountsAndWeights(ax, stf)
-% matRad_plotEnergyLayerHistogramCountsAndWeights - Plot histogram of spot counts and weights per energy layer, per beam.
-%
-% This function visualizes the number of proton/ion therapy spots and their
-% corresponding total weights per energy layer. Spot counts are shown as bars
-% and weights as lines on a shared x-axis (energy), but separate y-axes.
+function matRad_plotEnergyLayerHistogramCountsAndWeights(ax, stf, showLines)
+% matRad_plotEnergyLayerHistogramCountsAndWeights
+% Stacked histogram of spot *counts* per energy and bar plot of *weights* (unnormalized).
+% Optional overlay of normalized ray weights as lines.
 %
 % INPUTS:
-%   ax  - Axes handle where the histogram will be drawn.
-%   stf - Struct array with fields .ray and rayTracerInfo.perSpot, each spot
-%         containing .energy and .weight.
+%   ax        - Axes handle
+%   stf       - Struct with .ray.rayTracerInfo.perSpot
+%   showLines - Boolean to plot normalized weight lines (optional)
 %
-% Example:
-%   figure;
-%   ax = gca;
-%   matRad_plotEnergyLayerHistogramCountsAndWeights(ax, stf);
-%
-%%
+% USAGE:
+%   figure; ax = gca;
+%   matRad_plotEnergyLayerHistogramCountsAndWeights(ax, stf, true);
 
+if nargin < 3
+    showLines = true;
+end
 if isempty(ax) || ~isvalid(ax)
     warning('Invalid or missing axes handle. Nothing will be plotted.');
     return;
 end
 
 hold(ax, 'on');
-colors = lines(10);  % up to 10 beam colors
 numBeams = numel(stf);
-legendEntries = strings(1, numBeams);
+rayLegendEntries = {};
+allEnergies = [];
 
-yyaxis(ax, 'left');
-ylabel(ax, 'Number of Spots');
-ax.YColor = [0 0 0];  % black axis ticks
-
-yyaxis(ax, 'right');
-ylabel(ax, 'Total Normalized Weight');
-ax.YColor = [0 0 0];
-
-yyaxis(ax, 'left'); % back to left for the bars
-
+% First pass: collect all energies and count total rays
+totalRays = 0;
 for iBeam = 1:numBeams
-    beam = stf(iBeam);
-    energyCount = containers.Map('KeyType','double','ValueType','int32');
-    energyWeight = containers.Map('KeyType','double','ValueType','double');
+    for iRay = 1:numel(stf(iBeam).ray)
+        if isfield(stf(iBeam).ray(iRay).rayTracerInfo, 'perSpot')
+            allEnergies = [allEnergies, [stf(iBeam).ray(iRay).rayTracerInfo.perSpot.energy]];
+            totalRays = totalRays + 1;
+        end
+    end
+end
+globalEnergies = unique(allEnergies);
+numGlobalEnergies = numel(globalEnergies);
 
-    for iRay = 1:numel(beam.ray)
-        rayInfo = beam.ray(iRay).rayTracerInfo;
+% Allocate matrix
+counts = zeros(totalRays, numGlobalEnergies);
+weights = zeros(totalRays, numGlobalEnergies);
+rayLabels = strings(1, totalRays);
+
+% Second pass: fill in matrices
+rayIdx = 0;
+for iBeam = 1:numBeams
+    for iRay = 1:numel(stf(iBeam).ray)
+        rayInfo = stf(iBeam).ray(iRay).rayTracerInfo;
         if ~isfield(rayInfo, 'perSpot')
             continue;
         end
+        rayIdx = rayIdx + 1;
+        rayLabels(rayIdx) = sprintf('Beam %d - Ray %d', iBeam, iRay);
 
         for iSpot = 1:numel(rayInfo.perSpot)
             spot = rayInfo.perSpot(iSpot);
-            E = spot.energy;
-            w = spot.weight;
-
-            % Count occurrences
-            if ~isKey(energyCount, E)
-                energyCount(E) = 1;
-                energyWeight(E) = w;
-            else
-                energyCount(E) = energyCount(E) + 1;
-                energyWeight(E) = energyWeight(E) + w;
-            end
+            eIdx = find(globalEnergies == spot.energy);
+            counts(rayIdx, eIdx) = counts(rayIdx, eIdx) + 1;
+            weights(rayIdx, eIdx) = weights(rayIdx, eIdx) + spot.weight;
         end
     end
-
-    % Sort energies
-    energies = cell2mat(energyCount.keys);
-    energiesSorted = sort(energies);
-    counts = arrayfun(@(e) energyCount(e), energiesSorted);
-    totalWeight = arrayfun(@(e) energyWeight(e), energiesSorted);
-    normWeight = totalWeight / max(totalWeight);  % normalize weights
-
-    colorIdx = mod(iBeam-1, size(colors,1)) + 1;
-    beamColor = colors(colorIdx,:);
-
-    % Plot spot count (bars)
-    yyaxis(ax, 'left');
-    bar(ax, energiesSorted, counts, 'FaceColor', beamColor, ...
-        'FaceAlpha', 0.5, 'EdgeColor', 'none');
-
-    % Plot normalized weight (line)
-    yyaxis(ax, 'right');
-    plot(ax, energiesSorted, normWeight, '-', ...
-        'Color', beamColor, 'LineWidth', 2, 'DisplayName', ['Beam ' num2str(iBeam)]);
-
-    legendEntries(iBeam) = "Beam " + string(iBeam);
 end
 
+% Create colormap
+rayColors = jet(totalRays);
+
+% === Left Y-axis: Counts (stacked bars) ===
+yyaxis(ax, 'left');
+bar(ax, globalEnergies, counts', 'stacked', 'BarWidth', 0.8);
+for i = 1:totalRays
+    h = findobj(ax, 'Type', 'Bar');
+    if ~isempty(h)
+        set(h(i), 'FaceColor', rayColors(i,:), 'EdgeColor', 'none');
+    end
+end
+ylabel(ax, 'Number of Spots');
+ax.YColor = [0 0 0];
+
+% === Right Y-axis: Total weight (bar plot per energy) ===
+yyaxis(ax, 'right');
+totalWeightPerEnergy = sum(weights, 1);
+bar(ax, globalEnergies, totalWeightPerEnergy, ...
+    'FaceAlpha', 0.3, 'EdgeColor', 'none', 'FaceColor', [0.3 0.3 0.3]);
+ylabel(ax, 'Total Weight (unnormalized)');
+ax.YColor = [0 0 0];
+
+% === Optional: overlay per-ray normalized weights ===
+if showLines
+    for i = 1:totalRays
+        w = weights(i, :);
+        if max(w) > 0
+            normW = w / max(w);
+            plot(ax, globalEnergies, normW, '-', ...
+                'Color', rayColors(i,:), 'LineWidth', 1.2, ...
+                'DisplayName', rayLabels(i) + " (norm w)");
+        end
+    end
+end
+
+% === Final touches ===
 xlabel(ax, 'Energy (MeV)');
-title(ax, 'Energy Layer Histogram: Spot Counts and Weights');
-legend(ax, legendEntries, 'Location', 'bestoutside');
+xticks(ax, globalEnergies);
+xticklabels(ax, string(globalEnergies));
+title(ax, 'Energy Layer Histogram (Spot Count + Weight per Ray)');
+legend(ax, rayLabels, 'Location', 'eastoutside');
 grid(ax, 'on');
 end
