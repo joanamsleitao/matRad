@@ -1,4 +1,4 @@
-function [ct, cst, pln, stf, resultGUI] = matRad_importDicom(obj)
+function matRad_importDicom(obj)
 % matRad wrapper function to import a predefined set of dicom files files
 % into matRad's native data formats
 % 

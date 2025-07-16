@@ -2,13 +2,29 @@ function [matRadFileName, ct, cst, pln, stf, resultGUI] = matRadJoana_importDico
 % Function to import dicom files
 %   Detailed explanation goes here
 
-% % output = matRad_DicomImporter(path);
-% pathToFolder = 'C:\Users\joana\OneDrive\Documentos\PhD\KIT_IBT\Ablation\PatientTrial_CAUG_002_FromKielh';
 dcmImpObj = matRad_DicomImporter(pathToFolder);
 
 matRad_importDicom(dcmImpObj);
-% allfiles = dcmImpObj.allfiles;
+
+ct = dcmImpObj.ct;
+cst = dcmImpObj.cst;
+pln = dcmImpObj.pln;
+stf = dcmImpObj.stf;
+resultGUI = dcmImpObj.resultGUI;
+
 patients = dcmImpObj.patients;
+
+%% Save
+matRadFileName = append(pathToFolder, '\matRadPatient', patients{1}, '.mat');
+
+%Optional saving, we tend to force v7 for compatibility. We use the patient name from the importScan here to identify
+save('-v7',matRadFileName,'ct','cst', 'pln', 'stf', 'resultGUI');
+
+end
+
+%%
+% % output = matRad_DicomImporter(path);
+% pathToFolder = 'C:\Users\joana\OneDrive\Documentos\PhD\KIT_IBT\Ablation\PatientTrial_CAUG_002_FromKielh';
 
 % [allfiles,patients] = matRad_scanDicomImportFolder("C:\Users\joana\OneDrive\Documentos\PhD\KIT_IBT\Ablation\PatientTrial_CAUG_002_FromKielh"); %MatRad will also be able to separate multiple patients, but this example will only work if there's only a single patient in the folder.
 
@@ -26,24 +42,3 @@ patients = dcmImpObj.patients;
 %
 % %We need to set one more variable I forgot to mention above
 % importFiles.useDoseGrid = false;
-
-dcmImpObj.patients = dcmImpObj.patients{1, 1};
-% matRad_importDicom(dcmImpObj);
-
-matRad_importDicom(dcmImpObj);
-%Now, after starting the GUI / clicking Refresh, the important patient should show after some precomputations for display
-% matRadGUI
-
-% Save
-matRadFileName = fullfile([pathToFolder, '\matRadPatient', patients{1} '.mat']); % use default from dicom
-
-ct = dcmImpObj.ct;
-cst = dcmImpObj.cst;
-pln = dcmImpObj.pln;
-stf = dcmImpObj.stf;
-resultGUI = dcmImpObj.resultGUI;
-
-%Optional saving, we tend to force v7 for compatibility. We use the patient name from the importScan here to identify
-save('-v7',matRadFileName,'ct','cst', 'pln', 'stf', 'resultGUI');
-
-end

@@ -10,6 +10,7 @@ stf = stf_mb;
 %%
 % create single bixel stf
 stf_sb = matRad_generateSingleBixelStf(ct,cst,pln);
+
 pln.propStf.energy = stf_sb.ray.energy;
 
 stf_oneEL = matRad_generateSingleBixelStf(ct,cst,pln);

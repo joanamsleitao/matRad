@@ -11,16 +11,6 @@ end
 
 if ~exist('modality', 'var') || isempty(modality)
     modality = 'photons';
-else
-    if modality == 1
-        modality = 'photons';
-    elseif modality == 2
-        modality = 'protons';
-    elseif modality == 3
-        modality = 'carbons';
-    else
-        modality = 'photons';
-    end
 end
 
 %%
@@ -42,4 +32,12 @@ pln.propStf.isoCenter    = matRad_getIsoCenter(cst,ct,0);
 pln.propDoseCalc.doseGrid.resolution.x = doseGridResolution(1); % [mm]
 pln.propDoseCalc.doseGrid.resolution.y = doseGridResolution(2); % [mm]
 pln.propDoseCalc.doseGrid.resolution.z = doseGridResolution(3); % [mm]
+
+if ~strcmp(modality, 'photons')
+    pln.bioModel = matRad_bioModel(pln.radiationMode,'none');
+% pln.propOpt.bioOptimization = 'none';
+pln.propDoseCalc.calcLET = 0;
+pln.propDoseCalc.engine = 'HongPB';
+end
+
 end

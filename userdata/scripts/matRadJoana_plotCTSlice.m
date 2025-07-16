@@ -103,7 +103,7 @@ matRad_cfg = MatRad_Config.instance();
 
 set(axesHandle,'YDir','Reverse');
 % plot ct slice
-hCt = matRad_plotCtSlice(axesHandle,ct.cube,cubeIdx,plane,slice); 
+hCt = matRad_plotCtSlice(axesHandle,ct.cubeHU,cubeIdx,plane,slice); 
 hold on;
 
 % % plot dose
