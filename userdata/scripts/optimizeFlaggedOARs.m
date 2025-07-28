@@ -54,20 +54,12 @@ for i = 1:numel(flaggedStruct)
 
     % Set dose goal based on metric and reference value
     switch metric
-        case 'D_2'
-            cst{ixOAR, 6}{1, 1}.className = 'DoseObjectives.matRad_SquaredOverdosing';
-            cst{ixOAR, 6}{1, 1}.parameters{1} = ceil(flag.ref);
-            cst{ixOAR, 6}{1, 1}.penalty = basePenalty;
-        case 'D_98'
-            cst{ixOAR, 6}{1, 1}.className = 'DoseObjectives.matRad_SquaredUnderdosing';
-            cst{ixOAR, 6}{1, 1}.parameters{1} = basePenalty;
-            cst{ixOAR, 6}{1, 1}.penalty = basePenalty;
-
-
-        case 'mean'
-            cst{ixOAR, 6}{1, 1}.className = 'DoseObjectives.matRad_SquaredDeviation';
-            cst{ixOAR, 6}{1, 1}.parameters{1} = flag.ref;
-            cst{ixOAR, 6}{1, 1}.penalty = basePenalty;
+        case 'D_2' % 1, 'DoseObjectives.matRad_SquaredOverdosing';
+            cst{ixOAR, 6}{1, 1}.penalty =  cst{ixOAR, 6}{1, 1}.penalty * basePenalty;
+        case 'D_98' % 2, 'DoseObjectives.matRad_SquaredUnderdosing';
+            cst{ixOAR, 6}{1, 1}.penalty = cst{ixOAR, 6}{1, 2}.penalty * basePenalty;
+        case 'mean' % 3, 'DoseObjectives.matRad_SquaredDeviation';
+            cst{ixOAR, 6}{1, 3}.penalty = cst{ixOAR, 6}{1, 3}.penalty * basePenalty;
         otherwise
             warning('Metric %s not recognized for OAR %s, skipping.', metric, flag.name);
     end
@@ -82,11 +74,12 @@ bestW = wInit;
 bestScore = Inf; % sum of abs deviations (PTV + flagged OARs)
 success = false;
 
+wOpt = wInit;
 fprintf('Starting optimization on flagged OARs with PTV constraints preserved...\n');
 
 for iter = 1:maxIter
     % Optimize fluence
-    resultOpt = matRad_fluenceOptimization(dij, cst, pln);
+    resultOpt = matRad_fluenceOptimization(dij, cst, pln, wOpt);
     wOpt = resultOpt.w;
     doseCubeOpt = resultOpt.physicalDose;
     clear resultOpt

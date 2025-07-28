@@ -1,93 +1,104 @@
 function [doseCubeFinal, wFinal, qiFinal] = optimizeReplicatedPlan(cst, pln, qiPat, dij, doseCubeInit, wInit, qiInit)
-%OPTIMIZEREPLICATEDPLAN Improve initial plan to meet PTV goals by adjusting PTV penalty.
-%   This function compares initial plan quality indicators against goals
-%   from the original plan, and iteratively increases the penalty on the
-%   PTV if D_98 and D_2 values do not meet constraints.
+%OPTIMIZEREPLICATEDPLAN Tune PTV penalties to replicate D_98, D_2, mean dose from clinical plan.
 %
-%   INPUTS:
-%       cst          - Cell structure table containing constraints
-%       pln          - Plan structure
-%       qiPat        - Quality indicators from the original plan (reference)
-%       dij          - Dose influence matrix
-%       doseCubeInit - Initial dose distribution of replicated plan
-%       wInit        - Initial beamlet weights of replicated plan
-%       qiInit       - Initial quality indicators of replicated plan
+% Inputs:
+%   cst          - Constraint structure table
+%   pln          - Plan structure
+%   qiPat        - Reference (clinical) quality indicators
+%   dij          - Dose influence matrix
+%   doseCubeInit - Initial dose
+%   wInit        - Initial weights
+%   qiInit       - Initial quality indicators
 %
-%   OUTPUTS:
-%       doseCubeFinal - Final (possibly optimized) doseCube
-%       wFinal         - Final (possibly optimized) weights
-%
-%   The optimization iteratively increases the PTV penalty by a fixed factor
-%   and performs fluence optimization until the clinical constraints are met
-%   or a maximum number of iterations is reached.
+% Outputs:
+%   doseCubeFinal - Final dose
+%   wFinal        - Final weights
+%   qiFinal       - Final quality indicators
 
-%% Settings
-maxIter = 10;                    % Maximum optimization attempts
-penaltyIncreaseFactor = 0.2;     % Penalty scaling factor per iteration
+    %% Settings
+    maxIter = 10;
+    penaltyIncreaseFactor = 0.25;
+    meanTolerancePct = 2;
+    VxToleranceAbs = 3;  % absolute difference allowed in Vx values (e.g. V10 within 3%)
 
-%% Extract VOINames and Indices
-VOINames = parseStructureFile('VOINames.txt');
-ixPTV = find(contains(cst(:,2), VOINames.PTV), 1);
-ixExternal = find(contains(cst(:,2), VOINames.External), 1);
+    %% Get PTV index and name
+    VOINames = parseStructureFile('VOINames.txt');
+    ixPTV = find(contains(cst(:,2), VOINames.PTV), 1);
+    ptvName = cst{ixPTV, 2};
 
-%% Define Dose Goals from Clinical Plan
-minDoseGoalPTV = floor(qiPat(ixPTV).D_98);
-maxDoseGoalPTV = ceil(qiPat(ixPTV).D_2);
+    %% Get clinical reference values
+    D_98_goal  = qiPat(ixPTV).D_98;
+    D_2_goal   = qiPat(ixPTV).D_2;
+    mean_goal  = qiPat(ixPTV).mean;
 
-%% Check Initial Plan
-minD98 = qiInit(ixPTV).D_98;
-maxD2  = qiInit(ixPTV).D_2;
-success = minD98 > minDoseGoalPTV && maxD2 < maxDoseGoalPTV;
+    % Get list of Vx fields in the reference
+    VxFields = fieldnames(qiPat(ixPTV));
+    VxFields = VxFields(contains(VxFields, 'V_') & endsWith(VxFields, 'Gy'));
 
-if success
-    disp('Initial plan meets PTV clinical goals.');
+    % Store best result
+    bestScore = inf;
     doseCubeFinal = doseCubeInit;
     wFinal = wInit;
-   qiFinal = qiInit;
+    qiFinal = qiInit;
 
-else
-    disp('Initial plan does not meet PTV clinical goals.');
-    disp(['  Initial D_98 = ', num2str(minD98), ', D_2 = ', num2str(maxD2)]);
-    disp('Starting iterative penalty optimization on PTV...');
-
-    improved = false;
-
+    doseCubeOpt = doseCubeInit;
+    wOpt = wInit;
+    objectiveOpt = 100000;
     for iter = 1:maxIter
-        % Increase penalty on PTV
-        oldPenalty = cst{ixPTV, 6}{1, 1}.penalty;
-        cst{ixPTV, 6}{1, 1}.penalty = oldPenalty * (1 + penaltyIncreaseFactor);
-        newPenalty = cst{ixPTV, 6}{1, 1}.penalty;
+        % Evaluate current metrics
+        qi = matRadJoana_calcQualityIndicators(cst, pln, doseCubeOpt);
+        D_98 = qi(ixPTV).D_98;
+        D_2 = qi(ixPTV).D_2;
+        meanD = qi(ixPTV).mean;
 
-        fprintf('  Iteration %d: Increased PTV penalty from %.2f to %.2f\n', iter, oldPenalty, newPenalty);
+        relDevMean = 100 * abs(meanD - mean_goal) / mean_goal;
+        score = abs(D_98 - D_98_goal) + abs(D_2 - D_2_goal) + relDevMean;
 
-        % Re-optimize and evaluate
-        resultOpt = matRad_fluenceOptimization(dij, cst, pln);
-        wOpt = resultOpt.w;
-        doseCubeOpt = resultOpt.physicalDose;
-        clear resultOpt
-
-        qiOpt = matRadJoana_calcQualityIndicators(cst, pln, doseCubeOpt);
-        minD98 = qiOpt(ixPTV).D_98;
-        maxD2  = qiOpt(ixPTV).D_2;
-        success = minD98 > minDoseGoalPTV && maxD2 < maxDoseGoalPTV;
-
-        if success
-            disp('Clinical goals for PTV met after penalty optimization:');
-            fprintf('  D_98 = %.2f (goal > %.2f), D_2 = %.2f (goal < %.2f)\n', minD98, minDoseGoalPTV, maxD2, maxDoseGoalPTV);
-            doseCubeFinal = doseCubeOpt;
-            wFinal = wOpt;
-            qiFinal = qiOpt;
-            improved = true;
-            break;
-        else
-            fprintf('  Still not within goals: D_98 = %.2f, D_2 = %.2f\n', minD98, maxD2);
+        % Add Vx score (optional)
+        for f = 1:numel(VxFields)
+            fName = VxFields{f};
+            if isfield(qi(ixPTV), fName)
+                Vx_val = qi(ixPTV).(fName);
+                Vx_goal = qiPat(ixPTV).(fName);
+                score = score + min(abs(Vx_val - Vx_goal), VxToleranceAbs);
+            end
         end
+
+        if score < bestScore
+            bestScore = score;
+            doseCubeFinal = doseCubeInit;
+            wFinal = wInit;
+            qiFinal = qi;
+        end
+
+        % Check if within acceptable tolerance
+        if D_98 >= D_98_goal && D_2 <= D_2_goal && relDevMean <= meanTolerancePct
+            fprintf('✓ Iteration %d: PTV goals met (D98=%.2f, D2=%.2f, mean=%.2f)\n', iter, D_98, D_2, meanD);
+            return;
+        elseif objectiveOpt < 10
+            fprintf('Iteration %d: Opt value below 10. Breaking here. (D98=%.2f, D2=%.2f, mean=%.2f)\n', iter, D_98, D_2, meanD);
+            return;
+        else
+            fprintf('✗ Iter %d: D98=%.2f/%.2f, D2=%.2f/%.2f, Mean=%.2f (dev=%.1f%%)\n', ...
+                    iter, D_98, D_98_goal, D_2, D_2_goal, meanD, relDevMean);
+        end
+
+        % Adjust penalties on all PTV objectives
+        for o = 1:numel(cst{ixPTV,6})
+            if isfield(cst{ixPTV,6}{o}, 'penalty')
+                oldPenalty = cst{ixPTV,6}{o}.penalty;
+                cst{ixPTV,6}{o}.penalty = oldPenalty * (1 + penaltyIncreaseFactor);
+                fprintf('    -> Adjusted penalty on objective %d from %.2f to %.2f\n', ...
+                        o, oldPenalty, cst{ixPTV,6}{o}.penalty);
+            end
+        end
+
+        % Re-optimize
+        result = matRad_fluenceOptimization(dij, cst, pln, wOpt);
+        wOpt = result.w;
+        doseCubeOpt = result.physicalDose;
+        objectiveOpt = result.info.eval.objective;
     end
 
-    if ~improved
-        warning('Could not meet PTV goals after %d iterations.', maxIter);
-        doseCubeFinal = doseCubeInit;
-        wFinal = wInit;
-        qiFinal = qiInit;
-    end
+    warning('⚠ Could not reach all PTV goals after %d iterations. Best result returned.', maxIter);
 end
