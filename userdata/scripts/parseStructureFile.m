@@ -1,39 +1,43 @@
 function outStruct = parseStructureFile(filename)
-% parseStructureFile - Reads a text file line by line. Each line contains a structure name
-% followed by values. The structure name is used as the field name AND kept as the first element
-% of the associated cell array.
+% parseStructureFile - Reads a structure alias file and stores aliases and RGB color codes.
+% Lines should be formatted as:
+%   StructName, [R G B], alias1, alias2, ...
 %
-% Example input line:
-% External Patient Body External
-%
-% Output:
-% outStruct.External = {'External', 'Patient', 'Body', 'External'};
+% OUTPUT:
+%   outStruct.(StructName).Aliases = {...}
+%   outStruct.(StructName).Color   = [R G B]
 
-    % Initialize output structure
     outStruct = struct();
     
-    % Open file
     fid = fopen(filename, 'r');
     if fid == -1
         error('Could not open file: %s', filename);
     end
     
-    % Read each line
     line = fgetl(fid);
     while ischar(line)
-        % Skip empty lines
         if ~isempty(strtrim(line))
-            % Split line into words
-            words = strsplit(strtrim(line), ', ');
-            
-            % Use first word as struct field name
-            structName = matlab.lang.makeValidName(words{1});
-            
-            % Store entire line as cell array
-            outStruct.(structName) = words;
+            tokens = strsplit(strtrim(line), ', ');
+
+            structName = matlab.lang.makeValidName(tokens{1});
+            colorToken = tokens{2};
+
+            % Parse color if formatted correctly
+            colorMatch = regexp(colorToken, '\[(.*?)\]', 'tokens');
+            if isempty(colorMatch)
+                error('Could not parse RGB color from line: %s', line);
+            end
+            rgb = str2num(colorMatch{1}{1}); %#ok<ST2NM> % e.g., '0 1 0' → [0 1 0]
+            if numel(rgb) ~= 3
+                error('Invalid RGB vector in line: %s', line);
+            end
+
+            % Remaining tokens are aliases
+            aliases = tokens(3:end);
+
+            outStruct.(structName).Aliases = aliases;
+            outStruct.(structName).Color   = rgb;
         end
-        
-        % Next line
         line = fgetl(fid);
     end
     

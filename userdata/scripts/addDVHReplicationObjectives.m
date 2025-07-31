@@ -1,64 +1,143 @@
-function cst = addDVHReplicationObjectives(cst, VOIs, dvh, meanDose, basePenalty)
-%ADDDVHREPLICATIONOBJECTIVES Create objectives to replicate a clinical DVH.
+function cst = addDVHReplicationObjectives(cst, VOIs, dvhBase, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
+% ADDDVHREPLICATIONOBJECTIVES Add dose objectives to CST based on reference DVH data.
 %
-% INPUTS:
-%   cstIn       - CST table
-%   ixVOI       - Index of the VOI (e.g. ixPTV)
-%   dvh         - DVH struct with fields: dose [Gy] and volume [%]
-%   meanDose    - Mean dose of the VOI in the clinical plan
-%   basePenalty - Base penalty factor for all objectives
-%
-% OUTPUT:
-%   cstOut      - Modified CST with replication objectives for the selected VOI
+% See documentation in header above...
 
-% if ~exist('basePenalty', 'var') || isempty(basePenalty)
-%     basePenalty = 10;
-% end
-
-% if ~exist('meanDose', 'var') || isempty(meanDose)
-%     meanDose = 10;
-% end
-
-% Volume percentages to use (sorted low to high)
-vPoints = [2, 30, 98];
+if nargin < 5 || isempty(metrics)
+    metrics = {};
+end
+if ~iscell(metrics)
+    metrics = {metrics};
+end
+if nargin < 6
+    prescribedDoseOverride = [];
+end
+if nargin < 7
+    keepExistingObjectives = false;
+end
 
 for j = 1:numel(VOIs)
     ixVOI = VOIs(j);
-    % % Interpolate clinical DVH to get dose at specific volume percentages
-    % doseAtV = interp1(dvh.volumePoints, dvh.doseGrid, vPoints, 'linear', 'extrap');
-
+    structName = cst{ixVOI, 2};
     objList = {};
+    dvhData = dvhBase(ixVOI);
 
-    %% Add mean dose match
-    obj.className = 'DoseObjectives.matRad_SquaredDeviation';
-    obj.parameters{1} = meanDose;
-    obj.penalty = basePenalty;
-    objList{end+1} = obj;
-
-    % %% Add MinDVH (dose >= clinical at X% vol)
-    % for i = 1:numel(vPoints)
-    %     obj.className = 'DoseObjectives.matRad_MinDVH';
-    %     index = dsearchn(dvh(ixVOI).volumePoints(:),vPoints(i));
-    %     dose = dvh(ixVOI).doseGrid(index)*1.;
-    %     obj.parameters = {dose, vPoints(i)}; % Type 1 = absolute dose
-    %     obj.penalty = basePenalty;
-    %    objList{end+1} = obj;
-    % end
-
-    %% Add MaxDVH (dose <= clinical at X% vol)
-    for i = 1:numel(vPoints)
-        obj.className = 'DoseObjectives.matRad_MaxDVH';
-        index = dsearchn(dvh(ixVOI).volumePoints(:),vPoints(i));
-        dose = dvh(ixVOI).doseGrid(index);
-        obj.parameters = {dose, vPoints(i)}; % Type 1 = absolute dose
-        obj.penalty = basePenalty;
-        if vPoints(i) > 80
-            obj.penalty = basePenalty*100;
-        end
-        objList{end+1} = obj;
+    % Determine goal dose
+    if isempty(prescribedDoseOverride)
+        goalDose = [];
+    elseif isscalar(prescribedDoseOverride)
+        goalDose = prescribedDoseOverride;
+    elseif numel(prescribedDoseOverride) == numel(VOIs)
+        goalDose = prescribedDoseOverride(j);
+    else
+        error('prescribedDoseOverride length mismatch with VOIs');
     end
 
-    %% Set objectives in CST
-    cst{ixVOI, 6} = objList;
+    fprintf('\n>> Adding objectives for VOI: %s (index %d)\n', structName, ixVOI);
+
+    % Add mean objective
+    if any(strcmpi(metrics, 'mean')) && ~isempty(goalDose)
+        obj.className = 'DoseObjectives.matRad_SquaredDeviation';
+        obj.parameters = {goalDose};
+        obj.penalty = basePenalty;
+        objList{end+1} = obj;
+    elseif any(strcmpi(metrics, 'mean')) && isempty(goalDose)
+        fprintf('   Skipping sqDev dose objective: no goalDose provided.\n');
+    end
+
+    % Add MinDVH / MaxDVH objectives
+    for m = 1:numel(metrics)
+        metricStr = metrics{m};
+        if strcmpi(metricStr, 'mean')
+            continue;
+        elseif contains(metricStr, 'maxDVH') || contains(metricStr, 'minDVH')
+            parts = strsplit(metricStr, ' ');
+            if numel(parts) ~= 2
+                warning('Invalid metric format: %s', metricStr);
+                continue;
+            end
+            doseStr = parts{1};  % e.g., 'D_2'
+            modeStr = parts{2};  % 'maxDVH' or 'minDVH'
+
+            vol = str2double(extractAfter(doseStr, 'D_'));
+            if isnan(vol)
+                warning('Invalid DVH volume point in metric: %s', metricStr);
+                continue;
+            end
+
+            index = dsearchn(dvhData.volumePoints(:), vol);
+            if index < 1 || index > numel(dvhData.doseGrid)
+                warning('Volume %.2f%% is outside DVH volume points for VOI %s.', vol, structName);
+                continue;
+            end
+            dose = dvhData.doseGrid(index);
+
+            if strcmpi(modeStr, 'maxDVH')
+                obj.className = 'DoseObjectives.matRad_MaxDVH';
+            elseif strcmpi(modeStr, 'minDVH')
+                obj.className = 'DoseObjectives.matRad_MinDVH';
+            else
+                warning('Unknown DVH mode in metric: %s', metricStr);
+                continue;
+            end
+
+            obj.parameters = {dose, vol};
+            obj.penalty = basePenalty;
+            if vol > 80 && strcmpi(modeStr, 'maxDVH')
+                obj.penalty = basePenalty * 100;
+            end
+
+            objList{end+1} = obj;
+        else
+            warning('Unsupported metric: %s', metricStr);
+        end
+    end
+
+    % Fallback if no objectives created
+    if isempty(objList) && ~isempty(goalDose)
+        obj.className = 'DoseObjectives.matRad_SquaredDeviation';
+        obj.parameters = {goalDose};
+        obj.penalty = basePenalty;
+        objList{end+1} = obj;
+        fprintf('   No valid min/max DVH objectives found; added fallback mean objective.\n');
+    elseif isempty(objList)
+        fprintf('   No objectives added for VOI %s (no mean dose provided and no valid min/max DVH metrics).\n', structName);
+    end
+
+    % === Handle insertion with keepExistingObjectives ===
+    if keepExistingObjectives && iscell(cst{ixVOI,6})
+        existingObjs = cst{ixVOI,6};
+    else
+        existingObjs = {};
+    end
+
+    % Merge or update existing objectives
+    for newObj = objList
+        found = false;
+        for i = 1:numel(existingObjs)
+            if strcmp(existingObjs{i}.className, newObj{1}.className) && ...
+               isequal(existingObjs{i}.parameters, newObj{1}.parameters)
+                existingObjs{i}.penalty = newObj{1}.penalty;
+                found = true;
+                break;
+            end
+        end
+        if ~found
+            existingObjs{end+1} = newObj{1};
+        end
+    end
+
+    cst{ixVOI,6} = existingObjs;
+
+    % Summary printout
+    fprintf('   Final objectives for CHANGED VOIs %s (%d total):\n', structName, numel(existingObjs));
+
+    printCSTObjectives(cst, VOIs);
+    % for k = 1:numel(existingObjs)
+    %     obj = existingObjs{k};
+    %     paramStr = strjoin(cellfun(@(x) sprintf('%.2f', x), obj.parameters, 'UniformOutput', false), ', ');
+    %     fprintf('   [%d] %s | Params: %s | Penalty: %.1f\n', ...
+    %         k, obj.className, paramStr, obj.penalty);
+    % end
 end
 end

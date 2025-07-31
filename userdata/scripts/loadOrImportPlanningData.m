@@ -7,20 +7,30 @@ function [ct, cst, doseCube] = loadOrImportPlanningData(patientName)
 % Outputs:
 %   ct, cst, resultGUI - matRad data structures
 %   VOINames - structure parsed from VOINames.txt
+%
+% %%%%%
 
-    basePath = append('C:\Users\joana\MATLAB_ALL\KIT_STAR\Data\', patientName);
-    matFile = append(basePath, '\', patientName, '_PlanningCTandRTDose.mat');
+files = dir(fullfile(pwd, 'Data', [patientName, '*']));
+basePath = fullfile(pwd, 'Data', files.name);
 
-    if isfile(matFile)
-        fprintf('Loading existing .mat file for patient %s...\n', patientName);
-        load(matFile, 'ct', 'cst', 'resultGUI');
-    else
-        dicomPath = fullfile(basePath, 'Planning CT and RT Dose');
-        fprintf('Importing DICOM data for patient %s...\n', patientName);
-        matRadFileName = matRadJoana_importDicom(dicomPath);
-        load(matRadFileName, 'ct', 'cst', 'resultGUI');
-        movefile(matRadFileName, matFile);  % save renamed version
-    end
-    doseCube = resultGUI.physicalDose;
-    VOINames = parseStructureFile('VOINames.txt');
+matFileName = ls(fullfile(basePath, ['*PlanningCTandRTDose*', '.mat']));
+
+if size(matFileName,1) > 1
+    error('More than one *PlanningCTandRTDose* file detected. Please load manually');
+end
+
+matFile = fullfile(basePath, matFileName);
+
+if isfile(matFile)
+    fprintf('Loading existing .mat file for patient %s...\n', patientName);
+    load(matFileName, 'ct', 'cst', 'resultGUI');
+else
+    dicomPath = fullfile(basePath, 'Planning CT and RT Dose');
+    fprintf('Importing DICOM data for patient %s...\n', patientName);
+    matRadFileName = matRadJoana_importDicom(dicomPath);
+    load(matRadFileName, 'ct', 'cst', 'resultGUI');
+    movefile(matRadFileName, matFileName);  % save renamed version
+end
+doseCube = resultGUI.physicalDose;
+VOINames = parseStructureFile('VOINames.txt');
 end

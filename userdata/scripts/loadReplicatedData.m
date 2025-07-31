@@ -10,7 +10,8 @@ function [cst, pln, stf, doseCubeCurrent, wCurrent] = loadReplicatedData(patient
 fileOptions = dir(fullfile(patientFolderPath, '*DoseReproduction*.mat'));
 
 if length(fileOptions) == 1
-    load(fileOptions.name, 'ct', 'cst', 'doseCubePat', 'doseCubeCurrent', 'pln', 'stf', 'wCurrent');
+    fileFullnName = fullfile(patientFolderPath, fileOptions.name);
+    load(fileFullnName, 'ct', 'cst', 'doseCubePat', 'doseCubeCurrent', 'pln', 'stf', 'wCurrent');
 else
     error('Multiple reference .mat files found. Please select one %s');
 end

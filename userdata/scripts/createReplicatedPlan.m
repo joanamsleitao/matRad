@@ -8,10 +8,10 @@ function [stf, dij, doseCubeInit, wInit, qiInit] = createReplicatedPlan(patientN
     VOINames = parseStructureFile('VOINames.txt');
 
     % Determine patient folder based on ct path
-    patientFolder = append('C:\Users\joana\MATLAB_ALL\KIT_STAR\Data\', patientName);
+    patientFolder = fullfile(pwd, 'Data', patientName);
 
     % Look for existing basePlnStfDij files
-    fileList = dir(fullfile(patientFolder, 'basePlnStfDij_*.mat'));
+    fileList = dir(fullfile(patientFolder, ['*ase*', 'antry', gantrySep, '*', res, '*.mat']));
     loadedFromCache = false;
 
     for k = 1:numel(fileList)
@@ -30,15 +30,19 @@ function [stf, dij, doseCubeInit, wInit, qiInit] = createReplicatedPlan(patientN
         stf = matRad_generateStf(ct, cst, pln);
         dij = matRad_calcDoseInfluence(ct, cst, stf, pln);
 
-        saveName = ['basePlnStfDij_', datestr(now, 'yyyymmdd_HHMMSS'), '.mat'];
+        gantrySep = num2str(abs(pln.propStf.gantryAngles(1)-pln.propStf.gantryAngles(2)));
+        res = pln.propDoseCalc.doseGrid.resolution;
+        res = [num2str(res.x), num2str(res.y), num2str(res.z),'_' ];
+
+        saveName = ['basePlnStfDij_gantry', gantrySep, '_res', res, datestr(now, 'yyyymmdd_HHMMSS'), '.mat'];
         save(fullfile(patientFolder, saveName), 'pln', 'stf', 'dij');
     end
 
     %%
     % Initial fluence optimization using only EXTERNAL and PTV
 
-    ixPTV = find(contains(cst(:,2), VOINames.PTV), 1);
-    ixExternal = find(contains(cst(:,2), VOINames.External), 1);
+    ixPTV = find(contains(cst(:,2), VOINames.PTV.Aliases), 1);
+    ixExternal = find(contains(cst(:,2), VOINames.External.Aliases), 1);
     resultInit = matRad_fluenceOptimization(dij, [cst(ixExternal, :); cst(ixPTV, :)], pln);
     doseCubeInit = resultInit.physicalDose;
     wInit = resultInit.w;
