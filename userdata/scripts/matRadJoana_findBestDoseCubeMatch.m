@@ -1,7 +1,35 @@
 function [doseCube, wInit, qi] = matRadJoana_findBestDoseCubeMatch(cst, pln, GoalPTV, dij, doseCube, wInit, qi)
-%Call [doseCube, wInit, qi] = matRadJoana_findBestDoseCubeMatch(ct, cst, pln, stf, dij, doseCube, wInit, qi)
-
-%%%
+% matRadJoana_findBestDoseCubeMatch - Iteratively optimize dose to match PTV constraints
+%
+% Syntax:
+%   [doseCube, wInit, qi] = matRadJoana_findBestDoseCubeMatch(cst, pln, GoalPTV, dij, doseCube, wInit, qi)
+%
+% Inputs:
+%   cst       - matRad CST structure
+%   pln       - matRad plan structure
+%   GoalPTV   - 1x2 vector [D_98_min, D_2_max] goals for PTV (Gy)
+%   dij       - Dose influence matrix
+%   doseCube  - Current physical dose cube
+%   wInit     - Current fluence weights
+%   qi        - Initial quality indicator struct
+%
+% Outputs:
+%   doseCube  - Updated physical dose cube
+%   wInit     - Updated fluence weights
+%   qi        - Updated quality indicators after optimization
+%
+% Description:
+%   Applies repeated fluence optimization trials with increasing penalty
+%   until the D_98 and D_2 criteria for the PTV are satisfied.
+%
+% Other m-files required: matRad_fluenceOptimization, matRad_calcQualityIndicators
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: checkDoseCubeMatch, optimizeReplicatedPlan
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % Initialization
 maxTrials = 50;
 penaltyFactor = 1.5;

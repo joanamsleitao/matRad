@@ -1,7 +1,25 @@
 function cst = addDVHReplicationObjectives(cst, VOIs, dvhBase, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
-% ADDDVHREPLICATIONOBJECTIVES Add dose objectives to CST based on reference DVH data.
+% ADDVHREPLICATIONOBJECTIVES - Add dose objectives to CST based on reference DVH data
 %
-% See documentation in header above...
+% Syntax:  cst = addDVHReplicationObjectives(cst, VOIs, dvhBase, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
+%
+% Inputs:
+%   cst                     - Original CST table (cell array)
+%   VOIs                    - VOI indices to process (numeric array)
+%   dvhBase                 - Reference DVH data (struct array)
+%   basePenalty             - Base penalty for all objectives (double)
+%   metrics                 - Metrics to replicate (cell array of strings, optional)
+%   prescribedDoseOverride  - Override dose value(s) (double/array, optional)
+%   keepExistingObjectives  - Flag to preserve existing objectives (logical, optional)
+%
+% Outputs:
+%   cst - Modified CST with DVH-based objectives added (cell array)
+%
+% Other m-files required: none
+% Subfunctions: printCSTObjectives
+% MAT-files required: none
+%
+% See also: addDoseObjectivesFromQI
 
 if nargin < 5 || isempty(metrics)
     metrics = {};

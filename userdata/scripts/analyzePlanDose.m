@@ -1,32 +1,30 @@
 function [doseCube, wNew, qiNew, flaggedStruct] = analyzePlanDose(ct, cst, dij, pln, wInit, ixPTV, qiPat, VOINames)
-% ANALYZEPLANDOSE
+% ANALYZEPLANDOSE - Computes dose distribution and evaluates quality indicators
 %
-% Computes the dose distribution for a given plan and spot weights,
-% evaluates quality indicators, prints dose objectives for PTV,
-% and reports deviations in OARs relative to reference indicators.
+% Syntax:  [doseCube, wNew, qiNew, flaggedStruct] = analyzePlanDose(ct, cst, dij, pln, wInit, ixPTV, qiPat, VOINames)
 %
-% This function encapsulates the forward dose calculation, 
-% quality evaluation, and OAR deviation reporting in one call.
+% Inputs:
+%   ct          - CT data structure (struct)
+%   cst         - CST cell array (cell array)
+%   dij         - dij structure containing beamlet data (struct)
+%   pln         - Plan structure (struct)
+%   wInit       - Initial spot weights vector (double array)
+%   ixPTV       - Index/indices of PTV(s) in CST (integer array)
+%   qiPat       - Reference quality indicators struct (struct)
+%   VOINames    - VOI names corresponding to CST entries (cell array)
 %
-% INPUTS:
-%   ct       - CT data structure (required)
-%   cst      - CST cell array (required)
-%   dij      - dij structure containing beamlet data (required)
-%   pln      - Plan structure (required)
-%   wInit    - Initial spot weights vector (required)
-%   ixPTV    - Index (or vector of indices) of PTV(s) in CST for printing dose objectives (required)
-%   qiPat    - Reference quality indicators struct for comparison (required)
-%   VOINames - Cell array of VOI names corresponding to CST entries (required)
+% Outputs:
+%   doseCube        - Calculated physical dose cube [Gy] (double array)
+%   wNew            - Updated spot weights (double array)
+%   qiNew           - Calculated quality indicators (struct)
+%   flaggedStruct   - OARs flagged for deviations (struct)
 %
-% OUTPUTS:
-%   doseCube     - Calculated physical dose cube [Gy]
-%   wNew         - Updated spot weights after forward dose calculation
-%   qiNew        - Calculated quality indicators struct for current dose
-%   flaggedStruct - Structure listing OARs flagged for deviations compared to qiPat
+% Other m-files required: matRad_fluenceOptimization.m, 
+%                         matRadJoana_calcQualityIndicators.m
+% Subfunctions: printCSTObjectives, reportOARDeviations
+% MAT-files required: none
 %
-% EXAMPLE:
-%   [doseCube, wNew, qiNew, flaggedStruct] = analyzePlanDose(ct, cst, dij, pln, wInit, ixPTV, qiPat, VOINames);
-%
+% See also: addOverdoseConstraint, createReplicatedPlan
 
     % ---- Input validation ----
     narginchk(8,8); % Require exactly 8 inputs

@@ -1,11 +1,31 @@
 function [cst, pln, stf, doseCubeCurrent, wCurrent] = loadReplicatedData(patientFolderPath)
-%loadReplicatedData Loads Replication files CT & CST from .mat or imports from DICOM
+% loadReplicatedData - Load replication plan data from saved .mat file
+%
+% Syntax:
+%   [cst, pln, stf, doseCubeCurrent, wCurrent] = loadReplicatedData(patientFolderPath)
 %
 % Inputs:
-%   patientFolderPath - path to the patient folder (e.g., '...\UHEI_005')
+%   patientFolderPath - Full path to the patient folder (e.g., '...\UHEI_005')
 %
 % Outputs:
-%   ct, cst           - matRad-compatible CT and CST structures
+%   cst              - matRad structure table
+%   pln              - Plan struct
+%   stf              - Beam geometry struct
+%   doseCubeCurrent  - Physical dose cube from current plan
+%   wCurrent         - Beamlet weights for current plan
+%
+% Description:
+%   Searches for a single *DoseReproduction*.mat file in the patient folder.
+%   Loads all relevant data used for dose reproduction and comparison.
+%
+% Other m-files required: none
+% Subfunctions: none
+% MAT-files required: *DoseReproduction*.mat
+%
+% See also: createReplicatedPlan, analyzePlanDose
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 fileOptions = dir(fullfile(patientFolderPath, '*DoseReproduction*.mat'));
 

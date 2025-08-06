@@ -1,20 +1,28 @@
 function [doseCubeFinal, wFinal, qiFinal] = optimizeReplicatedPlan(cst, pln, qiPat, dij, doseCubeInit, wInit, qiInit)
-%OPTIMIZEREPLICATEDPLAN Tune PTV penalties to replicate D_98, D_2, mean dose from clinical plan.
+% OPTIMIZEREPLICATEDPLAN - Tunes PTV penalties to replicate clinical plan
+%
+% Syntax:  [doseCubeFinal, wFinal, qiFinal] = optimizeReplicatedPlan(cst, pln, qiPat, dij, doseCubeInit, wInit, qiInit)
 %
 % Inputs:
-%   cst          - Constraint structure table
-%   pln          - Plan structure
-%   qiPat        - Reference (clinical) quality indicators
-%   dij          - Dose influence matrix
-%   doseCubeInit - Initial dose
-%   wInit        - Initial weights
-%   qiInit       - Initial quality indicators
+%   cst          - CST cell array (cell array)
+%   pln          - Plan structure (struct)
+%   qiPat        - Reference quality indicators (struct)
+%   dij          - Dose influence matrix (struct)
+%   doseCubeInit - Initial dose cube (3D array)
+%   wInit        - Initial weights (vector)
+%   qiInit       - Initial quality indicators (struct)
 %
 % Outputs:
-%   doseCubeFinal - Final dose
-%   wFinal        - Final weights
-%   qiFinal       - Final quality indicators
-
+%   doseCubeFinal - Final dose cube (3D array)
+%   wFinal        - Final weights (vector)
+%   qiFinal       - Final quality indicators (struct)
+%
+% Other m-files required: matRad_fluenceOptimization.m, matRadJoana_calcQualityIndicators.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRad_fluenceOptimization, matRadJoana_calcQualityIndicators
+%
     %% Settings
     maxIter = 10;
     penaltyIncreaseFactor = 0.25;

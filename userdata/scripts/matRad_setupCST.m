@@ -1,5 +1,5 @@
-function [cst, prescribedDose, ixPTV, ixExternal] = setupCSTandPrescribedDose(cst, VOINames, VOISites, mode)
-% SETUPCSTANDPRESCRIBEDDOSE - Validates and updates CST with colors and structure info
+function [cst, prescribedDose] = matRad_setupCST(cst, VOINames, VOISites, mode)
+% matRad_setupCST - Validates and updates CST with colors and structure info
 %
 % Syntax:  [cst, prescribedDose, ixPTV, ixExternal] = setupCSTandPrescribedDose(cst, mode)
 %
@@ -56,6 +56,10 @@ else
     cst{ixPTV, 5}.visibleColor = VOINames.PTV.Color;
 end
 
+% Cleans all previous objectives
+cst(:, 6) = [];
+
+%% Modes
 % Handle STAR mode
 if strcmpi(mode, 'STAR')
     allowedNames = VOISites.(mode);

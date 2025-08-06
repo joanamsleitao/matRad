@@ -1,8 +1,25 @@
 function flaggedStruct = reportOARDeviations(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
-%REPORTOARDEVIATIONS Compare OAR metrics and optionally print CST objectives (once per VOI).
+% REPORTOARDEVIATIONS - Compares OAR metrics and optionally prints CST objectives
 %
-%   flaggedStruct = reportOARDeviations(cst, qiCurr, qiPat, VOINames, metricsToCheck, printOnlyFlagged, showObjectives)
-
+% Syntax:  flaggedStruct = reportOARDeviations(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
+%
+% Inputs:
+%   cst             - Constraint structure table (cell array)
+%   qi              - Current quality indicators (struct)
+%   qiReference     - Reference quality indicators (struct)
+%   metricsToCheck  - Metrics to compare (cell array, optional)
+%   printOnlyFlagged- Only print flagged deviations (logical, optional)
+%   showObjectives  - Show CST objectives (logical, optional)
+%
+% Outputs:
+%   flaggedStruct   - Structure of flagged deviations (struct array)
+%
+% Other m-files required: none
+% Subfunctions: formatCSTObjectiveLine
+% MAT-files required: none
+%
+% See also: printCSTObjectives
+%
     if nargin < 4 || isempty(metricsToCheck)
         metricsToCheck = {'D_2','D_98','mean'}; 
     end

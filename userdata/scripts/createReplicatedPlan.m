@@ -1,8 +1,28 @@
 function [stf, dij, doseCubeInit, wInit, qiInit] = createReplicatedPlan(patientName, ct, cst, pln)
-%CREATEREPLICATEDPLAN Creates stf and dij for a plan or loads from cache if available.
-%   This function looks for a previously saved struct named 'basePlnStfDij_<date>.mat' inside the
-%   same patient folder. If a match is found (based on matching fields in the plan), it loads the
-%   corresponding stf and dij. Otherwise, it computes them and saves to a new struct.
+% CREATEREPLICATEDPLAN - Creates/loads stf and dij for plan replication
+%
+% Syntax:  [stf, dij, doseCubeInit, wInit, qiInit] = createReplicatedPlan(patientName, ct, cst, pln)
+%
+% Inputs:
+%   patientName     - Name of patient folder (string)
+%   ct              - CT data structure (struct)
+%   cst             - CST cell array (cell array)
+%   pln             - Plan structure (struct)
+%
+% Outputs:
+%   stf             - Steering information (struct)
+%   dij             - Dose influence matrix (struct)
+%   doseCubeInit    - Initial dose cube [Gy] (double array)
+%   wInit           - Initial spot weights (double array)
+%   qiInit          - Initial quality indicators (struct)
+%
+% Other m-files required: matRad_generateStf.m, matRad_calcDoseInfluence.m,
+%                         matRad_fluenceOptimization.m,
+%                         matRadJoana_calcQualityIndicators.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: analyzePlanDose
 
     %%
     VOINames = parseStructureFile('VOINames.txt');

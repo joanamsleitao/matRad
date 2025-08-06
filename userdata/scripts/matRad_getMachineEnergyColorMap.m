@@ -1,7 +1,26 @@
 function colorMap = matRad_getMachineEnergyColorMap(stf)
-% Generate a colormap based on energy levels for a given STF (stf).
-% Loads the machine and maps energies to RGB colors.
-% For 'protons_generic', only energies 21 and 94 are considered.
+% matRad_getMachineEnergyColorMap - Generate energy-based colormap for machine energies
+%
+% Syntax:
+%   colorMap = matRad_getMachineEnergyColorMap(stf)
+%
+% Inputs:
+%   stf - matRad steering file struct containing machine and radiation mode info
+%
+% Outputs:
+%   colorMap - containers.Map with energy keys (MeV) and RGB values (1x3 array)
+%
+% Description:
+%   Creates a colormap that maps machine energy levels to RGB colors.
+%   For 'protons_Generic', uses a subset of energies (21 to 40).
+%
+% Other m-files required: none
+% Subfunctions: none
+% MAT-files required: machine .mat file (e.g., 'protons_Generic.mat')
+%
+% See also: matRad_plotEnergyLayerHistogram
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     % Get machine name from STF
     machineName = stf(1).machine;

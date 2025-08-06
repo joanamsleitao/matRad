@@ -1,68 +1,40 @@
 function [hCMap,hCt,hContour] = matRadJoana_plotCTSlice(axesHandle,ct,cst,cubeIdx,plane,slice,thresh,alpha,contourColorMap,...
                                                                           doseColorMap,doseWindow,doseIsoLevels,voiSelection,colorBarLabel,boolPlotLegend,varargin)
-% matRad tool function to directly plot a complete slice of a ct with dose
-% including contours and isolines.
+% MATRADJOANA_PLOTCTSLICE - Plots CT slice with contours
 %
-% call
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice)
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice,thresh)
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice,alpha)
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice,contourColorMap)
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice,doseColorMap)
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice,doseWindow)
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice,doseIsoLevels)
-%               ...
-% [hCMap,hDose,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx,dose,plane,slice,thresh,alpha,contourColorMap,...
-%                                                                          doseColorMap,doseWindow,doseIsoLevels,voiSelection,colorBarLabel,boolPlotLegend,...)
+% Syntax:  [hCMap,hCt,hContour] = matRadJoana_plotCTSlice(axesHandle,ct,cst,cubeIdx,plane,slice,thresh,alpha,contourColorMap,...
+%                                                                          doseColorMap,doseWindow,doseIsoLevels,voiSelection,colorBarLabel,boolPlotLegend,varargin)
 %
-% input (required)
-%   axesHandle      handle to axes the slice should be displayed in
-%   ct              matRad ct struct
-%   cst             matRad cst struct
-%   cubeIdx         Index of the desired cube in the ct struct
-%   dose            dose cube
-%   plane           plane view (coronal=1,sagittal=2,axial=3)
-%   slice           slice in the selected plane of the 3D cube
+% Inputs:
+%   axesHandle        - Handle to axes (handle)
+%   ct                - CT structure (struct)
+%   cst               - CST cell array (cell array)
+%   cubeIdx           - Cube index (integer)
+%   plane             - Plane view (1=coronal,2=sagittal,3=axial) (integer)
+%   slice             - Slice number (integer)
+%   thresh            - Dose threshold (double, optional)
+%   alpha             - Alpha value (double, optional)
+%   contourColorMap   - Contour colormap (matrix, optional)
+%   doseColorMap      - Dose colormap (matrix, optional)
+%   doseWindow        - Dose window (vector, optional)
+%   doseIsoLevels     - Iso dose levels (vector, optional)
+%   voiSelection      - VOI selection (logical array, optional)
+%   colorBarLabel     - Colorbar label (string, optional)
+%   boolPlotLegend    - Plot legend flag (logical, optional)
+%   varargin          - Additional plotting parameters (varargin)
 %
-% input (optional / empty)
-%   thresh          threshold for display of dose values
-%   alpha           alpha value for the dose overlay
-%   contourColorMap colormap for the VOI contours
-%   doseColorMap    colormap for the dose
-%   doseWindow      dose value window
-%   doseIsoLevels   levels defining the isodose contours
-%   voiSelection    logicals defining the current selection of contours
-%                   that should be plotted. Can be set to [] to plot
-%                   all non-ignored contours.
-%   colorBarLabel   string defining the yLabel of the colorBar
-%   boolPlotLegend  boolean if legend should be plottet or not
-%   varargin        additional input parameters that are passed on to
-%                   individual plotting functions (e.g. 'LineWidth',1.5)
-%   
+% Outputs:
+%   hCMap     - Handle to colormap (handle)
+%   hCt       - Handle to CT plot (handle)
+%   hContour  - Handle to contour plot (handle)
 %
-% output
-%   hCMap       handle to the colormap
-%   hDose       handle to the dose plot
-%   hCt         handle to the ct plot
-%   hContour    handle to the contour plot
-%   hIsoDose    handle to iso dose contours
+% Other m-files required: matRad_plotCtSlice.m, matRad_plotVoiContourSlice.m
+% Subfunctions: none
+% MAT-files required: none
 %
-% References
-%   -
-%
+% See also: matRad_plotCtSlice, matRad_plotVoiContourSlice
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Copyright 2015 the matRad development team. 
-% 
-% This file is part of the matRad project. It is subject to the license 
-% terms in the LICENSE file found in the top-level directory of this 
-% distribution and at https://github.com/e0404/matRad/LICENSE.md. No part 
-% of the matRad project, including this file, may be copied, modified, 
-% propagated, or distributed except according to the terms contained in the 
-% LICENSE file.
-%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Handle the argument list
 if ~exist('thresh','var') || isempty(thresh)
     thresh = [];

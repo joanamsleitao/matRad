@@ -1,21 +1,27 @@
 function [cst, qi] = matRadJoana_replicateCstFromDoseCube(cst, doseCube, prescribedDose, penalty, refGy, refVol)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
-% call
-%   qi = matRad_calcQualityIndicators(cst,pln,doseCube)
-%   qi = matRad_calcQualityIndicators(cst,pln,doseCube,refGy,refVol)
+% MATRADJOANA_REPLICATECSTFROMDOSECUBE - Replicates CST from dose cube
 %
-% input
-%   cst:                matRad cst struct
-%   pln:                matRad pln struct
-%   doseCube:           arbitrary doseCube (e.g. physicalDose)
-%   refGy: (optional)   array of dose values used for V_XGy calculation
-%                       default is [40 50 60]
-%   refVol:(optional)   array of volumes (0-100) used for D_X calculation
-%                       default is [2 5 95 98]
-%                       NOTE: Call either both or none!
-
-%%
+% Syntax:  [cst, qi] = matRadJoana_replicateCstFromDoseCube(cst, doseCube, prescribedDose, penalty, refGy, refVol)
+%
+% Inputs:
+%   cst             - CST cell array (cell array)
+%   doseCube        - Dose cube (3D array)
+%   prescribedDose  - Prescribed dose [Gy] (double)
+%   penalty         - Base penalty (double, optional)
+%   refGy           - Reference dose levels [Gy] (vector, optional)
+%   refVol          - Reference volumes [%] (vector, optional)
+%
+% Outputs:
+%   cst - Updated CST with objectives (cell array)
+%   qi  - Quality indicators (struct)
+%
+% Other m-files required: matRadJoana_calcQualityIndicators.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRadJoana_calcQualityIndicators
+%
+%
 if ~exist('penalty', 'var') || isempty(refGy)
     penalty = 50;
 end

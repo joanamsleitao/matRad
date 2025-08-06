@@ -1,21 +1,26 @@
 function [fileNameComplete, fileFolder, fileName, foundMatches] = findFileName(fileFolder, gantrySep, res, workspaceType)
-% findWorkspaceFileName - Find a matRad workspace file based on gantry angle and resolution.
+% FINDFILENAME - Find matRad workspace file based on gantry angle and resolution
 %
-% Syntax:
-%   [fileNameComplete, fileFolder, fileName, foundMatches] = ...
-%       findWorkspaceFileName(fileFolder, gantrySep, res, workspaceType)
+% Syntax:  [fileNameComplete, fileFolder, fileName, foundMatches] = ...
+%              findFileName(fileFolder, gantrySep, res, workspaceType)
 %
 % Inputs:
-%   fileFolder     - Path to the folder to search in
-%   gantrySep      - Scalar: gantry separation (e.g., 5)
-%   res            - Struct with [x y z]
-%   workspaceType  - (Optional) 'Base' or 'Full' to restrict search by prefix
+%   fileFolder     - Path to search folder (string)
+%   gantrySep      - Gantry separation angle [degrees] (double)
+%   res            - Dose grid resolution [x y z] (double array)
+%   workspaceType  - File prefix filter ('Base' or 'Full') (string, optional)
 %
 % Outputs:
-%   fileNameComplete - Full path to the first matching file
-%   fileFolder       - Same as input
-%   fileName         - File name only (not full path)
-%   foundMatches     - Cell array of all matching file names
+%   fileNameComplete - Full path to first matching file (string)
+%   fileFolder       - Input folder path (string)
+%   fileName         - Name of first matching file (string)
+%   foundMatches     - Cell array of all matching files (cell array)
+%
+% Other m-files required: none
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: generateFileName
 
     if nargin < 3
         error('At least fileFolder, gantrySep, and res must be provided.');

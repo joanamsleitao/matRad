@@ -1,16 +1,24 @@
-function [fileNameComplete, fileFolder, fileName]  = generateFileName(fileFolder, pln, workspaceType)
-% generateWorkspaceFileName - Generate consistent file names for saving matRad workspaces.
+function [fileNameComplete, fileFolder, fileName] = generateFileName(fileFolder, pln, workspaceType)
+% GENERATEFILENAME - Generate consistent file names for matRad workspaces
 %
-% Syntax:
-%   fileNameComplete = generateWorkspaceFileName(fileFolder, pln, workspaceType)
+% Syntax:  [fileNameComplete, fileFolder, fileName] = ...
+%              generateFileName(fileFolder, pln, workspaceType)
 %
 % Inputs:
-%   fileFolder      - Path to the folder where the file will be saved
-%   pln             - matRad plan struct (must contain propStf and propDoseCalc)
-%   workspaceType   - String: 'Base' (e.g., pln/stf/dij) or 'Full' (everything saved)
+%   fileFolder     - Target save folder (string)
+%   pln            - matRad plan structure (struct)
+%   workspaceType  - Workspace type identifier ('Base' or 'Full') (string)
 %
-% Output:
-%   fileNameComplete - Full path to the generated .mat file
+% Outputs:
+%   fileNameComplete - Full path to generated file (string)
+%   fileFolder       - Input folder path (string)
+%   fileName         - Generated file name (string)
+%
+% Other m-files required: none
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: findFileName
 
     if nargin < 3
         error('All inputs (fileFolder, pln, workspaceType) must be provided.');

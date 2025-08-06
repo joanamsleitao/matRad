@@ -1,12 +1,31 @@
 function [ct, cst, refFileName] = loadOrImportPhaseData(patientFolderPath, phaseName)
-%LOADORIMPORTPHASEDATA Loads CT & CST from .mat or imports from DICOM
+% loadOrImportPhaseData - Loads CT and CST for a given breathing phase from .mat or DICOM
+%
+% Syntax:
+%   [ct, cst, refFileName] = loadOrImportPhaseData(patientFolderPath, phaseName)
 %
 % Inputs:
-%   patientFolderPath - path to the patient folder (e.g., '...\UHEI_005')
-%   phaseName         - folder name or short name (e.g., 'CT 7 phase 211 90% linear' or 'Phase7')
+%   patientFolderPath - Path to the patient folder (e.g., '...\UHEI_005')
+%   phaseName         - Folder or identifier for the breathing phase (e.g., 'Phase7' or 'CT 7 phase 211 90% linear')
 %
 % Outputs:
-%   ct, cst           - matRad-compatible CT and CST structures
+%   ct           - matRad CT structure
+%   cst          - matRad CST structure
+%   refFileName  - Filename used for .mat reference file (e.g., 'Phase7_90.mat')
+%
+% Description:
+%   Tries to load CT and CST data from a pre-saved .mat file. If unavailable,
+%   it imports the data from a corresponding DICOM directory and saves it
+%   to the appropriate location.
+%
+% Other m-files required: matRadJoana_importDicom
+% Subfunctions: none
+% MAT-files required: PhaseX_YY.mat (auto-generated if not found)
+%
+% See also: matRadJoana_importDicom
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
     % --- Extract phase number and percentage ---
     phaseTokens = regexp(phaseName, '(\d+)', 'tokens');

@@ -1,13 +1,21 @@
 function cstOut = addDoseObjectivesFromQI(cstIn, qiPat, basePenalty)
-% Adds D_2, D_98, mean (and VxGy for PTV) objectives to CST based on qiPat.
+% ADDDOSEOBJECTIVESFROMQI - Adds D_2, D_98, mean and VxGy objectives to CST based on QI
 %
-% INPUTS:
-%   cstIn       - Original CST table
-%   qiPat       - Quality indicators from clinical/reference plan
-%   basePenalty - Base penalty for all objectives
+% Syntax:  cstOut = addDoseObjectivesFromQI(cstIn, qiPat, basePenalty)
 %
-% OUTPUT:
-%   cstOut      - Modified CST with objectives added for each VOI (except External)
+% Inputs:
+%   cstIn       - Original CST table (cell array)
+%   qiPat       - Quality indicators from clinical/reference plan (struct array)
+%   basePenalty - Base penalty for all objectives (double)
+%
+% Outputs:
+%   cstOut      - Modified CST with objectives added for each VOI (cell array)
+%
+% Other m-files required: parseStructureFile.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: addDVHReplicationObjectives
 
     VOINames = parseStructureFile('VOINames.txt');
     cstOut = cstIn;

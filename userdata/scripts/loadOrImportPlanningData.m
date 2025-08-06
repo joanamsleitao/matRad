@@ -1,14 +1,28 @@
 function [ct, cst, doseCube] = loadOrImportPlanningData(patientName)
-%LOADORIMPORTPLANNINGDATA Loads patient data from .mat or imports from DICOM
+% loadOrImportPlanningData - Load or import planning CT and dose for a given patient
+%
+% Syntax:
+%   [ct, cst, doseCube] = loadOrImportPlanningData(patientName)
 %
 % Inputs:
-%   patientName - name of the patient (e.g., 'UHEI_005')
+%   patientName - String with patient name (e.g., 'UHEI_005')
 %
 % Outputs:
-%   ct, cst, resultGUI - matRad data structures
-%   VOINames - structure parsed from VOINames.txt
+%   ct        - matRad CT structure
+%   cst       - matRad CST structure
+%   doseCube  - Physical dose cube from RTDOSE (if available)
 %
-% %%%%%
+% Description:
+%   Attempts to locate a .mat file containing planning CT and dose.
+%   If not found, imports the data from the DICOM directory and saves it.
+%
+% Other m-files required: matRadJoana_importDicom, parseStructureFile
+% Subfunctions: none
+% MAT-files required: *PlanningCTandRTDose*.mat
+%
+% See also: matRadJoana_importDicom, parseStructureFile
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 files = dir(fullfile(pwd, 'Data', [patientName, '*']));
 basePath = fullfile(pwd, 'Data', files.name);

@@ -1,10 +1,21 @@
 function printCSTObjectives(cst, rowIndices)
-%PRINTCSTOBJECTIVES Print a table of dose objectives for given CST rows.
+% PRINTCSTOBJECTIVES - Prints a table of dose objectives for given CST rows
+%
+% Syntax:  printCSTObjectives(cst, rowIndices)
 %
 % Inputs:
-%   cst         - Constraint structure table (matRad CST)
-%   rowIndices  - Index or indices of rows to inspect (e.g., 3 or [3 7])
-
+%   cst         - Constraint structure table (cell array)
+%   rowIndices  - Index or indices of rows to inspect (integer/vector, optional)
+%
+% Outputs:
+%   none (prints to command window)
+%
+% Other m-files required: none
+% Subfunctions: formatCSTObjectiveLine
+% MAT-files required: none
+%
+% See also: reportOARDeviations
+%
     if nargin < 2 || isempty(rowIndices)
         rowIndices = 1:size(cst, 1);
     end

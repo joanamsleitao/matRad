@@ -1,8 +1,30 @@
-function [matRadFileName, ct, cst, pln, stf, resultGUI] = matRadJoana_importDicom(pathToFolder)
-% Function to import dicom files
-%   Detailed explanation goes here
-
-dcmImpObj = matRad_DicomImporter(pathToFolder);
+function [matRadFileName, ct, cst, pln, stf, resultGUI] = matRadJoana_importDicom(dcmImpObj, pathToFolder)
+% MATRADJOANA_IMPORTDICOM - Imports DICOM files into matRad structures
+%
+% Syntax:  [matRadFileName, ct, cst, pln, stf, resultGUI] = ...
+%              matRadJoana_importDicom(dcmImpObj, pathToFolder)
+%
+% Inputs:
+%   dcmImpObj    - DICOM import object (struct)
+%   pathToFolder - Path to save folder (string, optional)
+%
+% Outputs:
+%   matRadFileName - Path to saved MAT file (string)
+%   ct            - CT structure (struct)
+%   cst           - CST cell array (cell array)
+%   pln           - Plan structure (struct)
+%   stf           - STF structure (struct)
+%   resultGUI     - Result GUI structure (struct)
+%
+% Other m-files required: matRad_importDicom.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRad_importDicom
+%
+if ~exist('pathToFolder','var') || isempty(pathToFolder)
+   pathToFolder = pwd;
+end
 
 matRad_importDicom(dcmImpObj);
 

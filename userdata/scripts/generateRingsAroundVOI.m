@@ -1,29 +1,25 @@
 function [cst, ringInfo] = generateRingsAroundVOI(ct, cst, ring_mm, ixRefVOI, marginPTVRing_mm, visualize)
-% generateRingsAroundVOI - Generate one or more concentric ring VOIs around a selected structure (e.g., PTV).
+% GENERATERINGSAROUNDVOI - Create concentric ring VOIs around reference structure
 %
-% This function creates concentric margin-based ring structures around an existing VOI in the CST.
-% Each ring corresponds to a margin expansion and optionally a subtraction of an inner margin,
-% forming a true "donut" shape. The rings are stored in the CST using linear voxel indices.
-%
-% This is especially useful for dose fall-off shaping, as ring OARs can be used for gradient constraints.
-%
-% Compared to matRad_addMargin:
-% - This function appends to the CST, preserving structure metadata.
-% - It computes the margin in voxel units based on CT resolution.
-% - It optionally creates multiple rings (e.g., 5mm, 10mm, 15mm shells).
-% - It can visualize the result on a CT slice.
-% - It creates ring *VOIs* not masks.
+% Syntax:  [cst, ringInfo] = generateRingsAroundVOI(ct, cst, ring_mm, ixRefVOI, marginPTVRing_mm, visualize)
 %
 % Inputs:
-%   ct          - CT struct with geometry info (must include ct.resolution and ct.cubeHU)
-%   cst         - Current CST cell array
-%   margin_mm   - Scalar or vector of ring margins in mm (e.g., [10] or [5 10 15])
-%   ixVOI       - Index of VOI in CST to ring around (default: PTV)
-%   visualize   - (Optional) true to plot result. Default: false
+%   ct                 - CT structure (struct)
+%   cst                - CST cell array (cell array)
+%   ring_mm            - Ring margin(s) [mm] (double array)
+%   ixRefVOI           - Reference VOI index (integer)
+%   marginPTVRing_mm   - Inner margin from PTV [mm] (double, optional)
+%   visualize          - Visualization flag (logical, optional)
 %
 % Outputs:
-%   cst         - Updated CST with new ring structures
-%   ringInfo    - Struct array with metadata for each ring created
+%   cst                - Updated CST with ring VOIs (cell array)
+%   ringInfo           - Ring metadata structure (struct array)
+%
+% Other m-files required: matRad_addMargin.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRad_addMargin
 
 if nargin < 5 || isempty(marginPTVRing_mm)
     marginPTVRing_mm = 0;

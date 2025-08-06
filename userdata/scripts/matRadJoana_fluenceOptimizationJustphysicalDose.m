@@ -1,37 +1,34 @@
-function [resultGUI.physicalDose,resultGUI.w] = matRadJoana_fluenceOptimizationJustphysicalDose(dij, cst, pln, wInit)
-% matRad inverse planning wrapper function
+function [doseCube, wInit, qi] = matRadJoana_findBestDoseCubeMatch(cst, pln, GoalPTV, dij, doseCube, wInit, qi)
+% matRadJoana_findBestDoseCubeMatch - Iteratively optimize dose to match PTV constraints
 %
-% call
-%   [resultGUI,optimizer] = matRad_fluenceOptimization(dij,cst,pln)
-%   [resultGUI,optimizer] = matRad_fluenceOptimization(dij,cst,pln,wInit)
+% Syntax:
+%   [doseCube, wInit, qi] = matRadJoana_findBestDoseCubeMatch(cst, pln, GoalPTV, dij, doseCube, wInit, qi)
 %
-% input
-%   dij:        matRad dij struct
-%   cst:        matRad cst struct
-%   pln:        matRad pln struct
-%   wInit:      (optional) custom weights to initialize problems
+% Inputs:
+%   cst       - matRad CST structure
+%   pln       - matRad plan structure
+%   GoalPTV   - 1x2 vector [D_98_min, D_2_max] goals for PTV (Gy)
+%   dij       - Dose influence matrix
+%   doseCube  - Current physical dose cube
+%   wInit     - Current fluence weights
+%   qi        - Initial quality indicator struct
 %
-% output
-%   resultGUI:  struct containing optimized fluence vector, dose, and (for
-%               biological optimization) RBE-weighted dose etc.
-%   optimizer:  Used Optimizer Object
+% Outputs:
+%   doseCube  - Updated physical dose cube
+%   wInit     - Updated fluence weights
+%   qi        - Updated quality indicators after optimization
 %
-% References
-%   -
+% Description:
+%   Applies repeated fluence optimization trials with increasing penalty
+%   until the D_98 and D_2 criteria for the PTV are satisfied.
 %
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Other m-files required: matRad_fluenceOptimization, matRad_calcQualityIndicators
+% Subfunctions: none
+% MAT-files required: none
 %
-% Copyright 2016 the matRad development team.
-%
-% This file is part of the matRad project. It is subject to the license
-% terms in the LICENSE file found in the top-level directory of this
-% distribution and at https://github.com/e0404/matRad/LICENSE.md. No part
-% of the matRad project, including this file, may be copied, modified,
-% propagated, or distributed except according to the terms contained in the
-% LICENSE file.
+% See also: checkDoseCubeMatch, optimizeReplicatedPlan
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 matRad_cfg = MatRad_Config.instance();
 
 % consider VOI priorities

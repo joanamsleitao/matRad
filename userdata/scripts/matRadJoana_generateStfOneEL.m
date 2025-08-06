@@ -1,6 +1,33 @@
-function [stf_oneEL, stf_mb, stf_sb] = matRadJoana_generateStfOneEL(ct, cst, pln)
-%% Generate Beam Geometry STF
-% pln.propStf.addMargin    = false; %to make smaller stf, les bixel
+ffunction [stf_oneEL, stf_mb, stf_sb] = matRadJoana_generateStfOneEL(ct, cst, pln)
+% matRadJoana_generateStfOneEL - Create STF with one energy layer per ray
+%
+% Syntax:
+%   [stf_oneEL, stf_mb, stf_sb] = matRadJoana_generateStfOneEL(ct, cst, pln)
+%
+% Inputs:
+%   ct    - matRad CT structure
+%   cst   - matRad CST structure
+%   pln   - matRad plan structure
+%
+% Outputs:
+%   stf_oneEL - STF where all rays lie in (x, 0, 0) and share the same energy layer
+%   stf_mb    - Full multi-energy STF
+%   stf_sb    - Single-bixel STF used as energy source
+%
+% Description:
+%   This function simplifies the beam geometry by filtering out rays not aligned
+%   along the (x, 0, 0) direction and assigning a uniform energy, range shifter,
+%   and focus index to all remaining rays. Fields interfering with optimization
+%   are removed.
+%
+% Other m-files required: matRad_generateStf, matRad_generateSingleBixelStf
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRadJoana_generatePln, matRad_plotSingleRay
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % create multi energy stf
 stf_mb = matRad_generateStf(ct,cst,pln);
 stf = stf_mb;

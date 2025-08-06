@@ -1,22 +1,23 @@
 function [cst, ixNewVOI] = addOverdoseConstraint(cst, doseCube, doseThreshold, ixRefVOI)
-% ADDOVERDOSECONSTRAINT Create a new VOI for overdosed areas and add max dose constraint.
+% ADDOVERDOSECONSTRAINT - Creates new VOI for overdosed areas and adds max dose constraint
 %
-%   This function identifies voxels within a specified VOI that exceed a given
-%   dose threshold, adds a new entry in the CST with those voxels, and appends
-%   a high-penalty maxDVH constraint to it.
+% Syntax:  [cst, ixNewVOI] = addOverdoseConstraint(cst, doseCube, doseThreshold, ixRefVOI)
 %
-% INPUTS:
-%   cst              - Cell structure of CST (matRad format).
-%   doseCube         - 3D dose matrix matching the structure mask size.
-%   doseThreshold    - Dose threshold [Gy] for defining overdose (e.g., 30).
-%   ixRefVOI        - Index of the VOI to apply the constraint to (optional).
-%                      Defaults to the first VOI labeled 'EXTERNAL'.
+% Inputs:
+%   cst             - Cell structure of CST (matRad format) (cell array)
+%   doseCube        - 3D dose matrix matching structure mask size (double array)
+%   doseThreshold   - Dose threshold for defining overdose [Gy] (double)
+%   ixRefVOI        - Index of reference VOI in CST (integer, optional)
 %
-% OUTPUTS:
-%   cst              - Updated CST with new VOI and constraint added.
-%   ixNewVOI         - Index of the newly added VOI in the CST.
+% Outputs:
+%   cst             - Updated CST with new VOI and constraint (cell array)
+%   ixNewVOI        - Index of newly added VOI in CST (integer)
 %
-% Author: ChatGPT & User, 2025
+% Other m-files required: none
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: analyzePlanDose
 
 % --- Handle default input for base VOI ---
 if nargin < 4 || isempty(ixRefVOI)

@@ -1,27 +1,35 @@
-function qi = matRadJoana_calcQualityIndicators(cst,pln,doseCube,refGy,refVol)
-% matRad QI calculation
-% 
-% call
-%   qi = matRad_calcQualityIndicators(cst,pln,doseCube)
-%   qi = matRad_calcQualityIndicators(cst,pln,doseCube,refGy,refVol)
+function qi = matRadJoana_calcQualityIndicators(cst, pln, doseCube, refGy, refVol)
+% matRadJoana_calcQualityIndicators - Calculate DVH-based quality indicators
 %
-% input
-%   cst:                matRad cst struct
-%   pln:                matRad pln struct
-%   doseCube:           arbitrary doseCube (e.g. physicalDose)
-%   refGy: (optional)   array of dose values used for V_XGy calculation
-%                       default is [40 50 60]
-%   refVol:(optional)   array of volumes (0-100) used for D_X calculation
-%                       default is [2 5 95 98]
-%                       NOTE: Call either both or none!
+% Syntax:
+%   qi = matRadJoana_calcQualityIndicators(cst, pln, doseCube)
+%   qi = matRadJoana_calcQualityIndicators(cst, pln, doseCube, refGy, refVol)
 %
-% output
-%   qi                  various quality indicators like CI, HI (for 
-%                       targets) and DX, VX within a structure set   
+% Inputs:
+%   cst      - matRad structure table
+%   pln      - matRad plan structure
+%   doseCube - 3D dose matrix (Gy)
+%   refGy    - (optional) vector of dose thresholds for Vx (%) [default: auto-generated]
+%   refVol   - (optional) vector of volume thresholds for Dx (Gy) [default: [2 5 50 95 98]]
 %
-% References
-%   van't Riet et. al., IJROBP, 1997 Feb 1;37(3):731-6.
-%   Kataria et. al., J Med Phys. 2012 Oct-Dec; 37(4)
+% Outputs:
+%   qi - Structure array with DVH-based indicators for each VOI:
+%        .mean, .max, .min, .D_X, .V_YGy, and optionally .HI_XGy, .CI_XGy
+%
+% Description:
+%   Computes quality indicators including D_x, V_xGy, homogeneity index (HI),
+%   and conformity index (CI) based on dose-volume histograms. If VOI is a
+%   target (cst{i,3} == 'TARGET'), reference dose is inferred from objectives.
+%
+% Other m-files required: matRad_DoseOptimizationFunction
+% Subfunctions: none
+% MAT-files required: none
+%
+% References:
+%   van’t Riet et al., IJROBP 1997;37(3):731–6.
+%   Kataria et al., J Med Phys. 2012;37(4)
+%
+% See also: matRad_interp1, matRad_plotDVH
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

@@ -1,22 +1,24 @@
 function [stf, mb_stf, sb_stf] = matRadJoana_generateStfOneEL(ct, cst, pln)
-disp('Result function called!');
-%% Generate Beam Geometry STF
-% pln.propStf.addMargin    = false; %to make smaller stf, les bixel
-% create multi energy stf
-mb_stf = matRad_generateStf(ct,cst,pln);
-stf = mb_stf;
-%%
-% stf = mb_stf;
-% stf_no_mod = mb_stf_no_mod;
-%%
-% create single bixel stf
-sb_stf = matRad_generateSingleBixelStf(ct,cst,pln);
-% sb_stf_no_mod = matRad_generateSingleBixelStf(ct_no_mod,cst_no_mod,pln);
-%%
-% adapt stf to have one energy layer/bixel per ray
-% run through all rays, keep only ray in the (x, 0, 0) line
-% to make a one front beam
-% can be altered to have another line
+% MATRADJOANA_GENERATESTFONEEL - Generates STF with single energy layer per ray
+%
+% Syntax:  [stf, mb_stf, sb_stf] = matRadJoana_generateStfOneEL(ct, cst, pln)
+%
+% Inputs:
+%   ct      - CT structure (struct)
+%   cst     - CST cell array (cell array)
+%   pln     - Plan structure (struct)
+%
+% Outputs:
+%   stf     - STF with single energy layer per ray (struct)
+%   mb_stf  - Multi-energy STF (struct)
+%   sb_stf  - Single bixel STF (struct)
+%
+% Other m-files required: matRad_generateStf.m, matRad_generateSingleBixelStf.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRad_generateStf, matRad_generateSingleBixelStf
+%
 list = []; % empty
 for j = 1:stf.numOfRays
     % if j==111

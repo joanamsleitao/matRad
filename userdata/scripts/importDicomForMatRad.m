@@ -1,18 +1,25 @@
 function [ct, cst, pln, resultGUI] = importDicomForMatRad(dicomFolder)
-% IMPORTDICOMFORMATRAD - Imports DICOM files into matRad.
-% 
-%   Inputs:
-%       dicomFolder - Path to the folder containing DICOM files.
+% IMPORTDICOMFORMATRAD - Imports DICOM files into matRad structures
 %
-%   Outputs:
-%       ct        - CT structure for matRad.
-%       cst       - Contour structure from RTSTRUCT.
-%       pln       - Treatment plan structure.
-%       resultGUI - Dose result (if RTDOSE exists, otherwise empty).
+% Syntax:  [ct, cst, pln, resultGUI] = importDicomForMatRad(dicomFolder)
 %
-%   Example:
-%       [ct, cst, pln, resultGUI] = importDicomForMatRad('/path/to/dicom/folder');
-
+% Inputs:
+%   dicomFolder - Path to folder containing DICOM files (string)
+%
+% Outputs:
+%   ct         - CT structure for matRad (struct)
+%   cst        - Contour structure from RTSTRUCT (cell array)
+%   pln        - Treatment plan structure (struct)
+%   resultGUI  - Dose result structure (empty if no RTDOSE present) (struct)
+%
+% Other m-files required: matRad_importDicom.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRad_importDicom
+%
+% Example:
+%   [ct, cst, pln, resultGUI] = importDicomForMatRad('/path/to/dicom/folder');
     if nargin < 1
         error('Please specify a folder containing DICOM files.');
     end

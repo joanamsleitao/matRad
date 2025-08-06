@@ -1,25 +1,34 @@
 function [doseCubeFinal, wFinal, info] = optimizeFlaggedOARs(cst, pln, qiPat, qiInit, flaggedStruct, dij, doseCubeInit, wInit, ...
     basePenalty, maxIter, tolerance)
-%OPTIMIZEFLAGGEDOARS Iteratively optimize flagged OARs while preserving PTV goals.
+% OPTIMIZEFLAGGEDOARS - Optimizes flagged OARs while preserving PTV goals
 %
-% INPUTS:
-%   cst           - constraints cell array
-%   pln           - plan structure
-%   qiPat         - quality indicators from original (clinical) plan (reference)
-%   qiInit        - quality indicators from initial/current plan
-%   flaggedStruct - struct array with flagged OAR deviations (name, metric, ref, curr, percent)
-%   dij           - dose influence matrix
-%   doseCubeInit  - initial dose cube
-%   wInit         - initial beamlet weights
-%   penaltyOAR    - (optional) penalty for OAR objectives (default: 10)
-%   maxIter       - (optional) max iterations (default: 10)
-%   tolerance     - (optional) tolerance % for OAR deviations (default: 10)
+% Syntax:  [doseCubeFinal, wFinal, info] = optimizeFlaggedOARs(cst, pln, qiPat, qiInit, flaggedStruct, dij, doseCubeInit, wInit, ...
+%    basePenalty, maxIter, tolerance)
 %
-% OUTPUTS:
-%   doseCubeFinal - final dose cube
-%   wFinal        - final weights
-%   info          - struct with optimization info
-
+% Inputs:
+%   cst           - CST cell array (cell array)
+%   pln           - Plan structure (struct)
+%   qiPat         - Reference quality indicators (struct)
+%   qiInit        - Initial quality indicators (struct)
+%   flaggedStruct - Flagged OAR deviations (struct array)
+%   dij           - Dose influence matrix (struct)
+%   doseCubeInit  - Initial dose cube (3D array)
+%   wInit         - Initial weights (vector)
+%   basePenalty   - Base penalty value (double, optional)
+%   maxIter       - Maximum iterations (integer, optional)
+%   tolerance     - Tolerance percentage (double, optional)
+%
+% Outputs:
+%   doseCubeFinal - Final dose cube (3D array)
+%   wFinal        - Final weights (vector)
+%   info          - Optimization info (struct)
+%
+% Other m-files required: matRad_fluenceOptimization.m, matRadJoana_calcQualityIndicators.m
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRad_fluenceOptimization, matRadJoana_calcQualityIndicators
+%
 if nargin < 9 || isempty(basePenalty), basePenalty = 10; end
 if nargin < 10 || isempty(maxIter), maxIter = 10; end
 if nargin < 11 || isempty(tolerance), tolerance = 50; end

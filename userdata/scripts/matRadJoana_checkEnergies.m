@@ -1,19 +1,29 @@
 function [allEnergies, numOfEnergies, numOfRays] = matRadJoana_checkEnergies(stf)
-% Taken from matRad_visSpotWeights, adapted on 14/04/2025
+% matRadJoana_checkEnergies - Lists energy layers per beam in STF
 %
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Syntax:
+%   [allEnergies, numOfEnergies, numOfRays] = matRadJoana_checkEnergies(stf)
 %
-% call
-%    matRadJoana_checkEnergies(stf)
+% Inputs:
+%   stf - matRad stf structure containing beam and ray definitions
 %
-% input
-%   stf:              matRad stf struct
-
-% output
+% Outputs:
+%   allEnergies    - Cell array of energy vectors per beam
+%   numOfEnergies  - Number of unique energies per beam
+%   numOfRays      - Total number of rays in the plan
 %
-% References
-%   -
+% Description:
+%   Extracts the unique energy levels used in each beam and counts them,
+%   as well as the total number of rays in the plan.
+%
+% Other m-files required: none
+% Subfunctions: none
+% MAT-files required: none
+%
+% See also: matRad_plotEnergyLayerHistogram, matRad_generateStf
+%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 numOfBeams = size(stf,2);
 for i=1:numOfBeams
     % find range of ray positions within beam
