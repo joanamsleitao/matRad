@@ -1,8 +1,8 @@
-function [pln] = matRadJoana_generatePln(cst, ct, gantryAngles, doseGridResolution, modality)
-% matRadJoana_generatePln - Create a basic matRad plan structure
+function [pln] = matRad_generatePln(cst, ct, gantryAngles, doseGridResolution, modality)
+% matRad_generatePln - Create a basic matRad plan structure
 %
 % Syntax:
-%   pln = matRadJoana_generatePln(cst, ct, gantryAngles, doseGridResolution, modality)
+%   pln = matRad_generatePln(cst, ct, gantryAngles, doseGridResolution, modality)
 %
 % Inputs:
 %   cst               - matRad CST structure

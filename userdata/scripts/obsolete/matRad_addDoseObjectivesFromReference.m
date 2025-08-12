@@ -1,7 +1,7 @@
-function cst = addDVHReplicationObjectives(cst, VOIs, dvhBase, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
-% ADDVHREPLICATIONOBJECTIVES - Add dose objectives to CST based on reference DVH data
+function cst = matRad_addDoseObjectivesFromReference(cst, VOIs, dvhBase, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
+% matRad_addDoseObjectivesFromReference - Add dose objectives to CST based on reference DVH data
 %
-% Syntax:  cst = addDVHReplicationObjectives(cst, VOIs, dvhBase, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
+% Syntax:  cst = matRad_addDoseObjectivesFromReference(cst, VOIs, dvhBase, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
 %
 % Inputs:
 %   cst                     - Original CST table (cell array)

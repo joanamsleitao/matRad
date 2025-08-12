@@ -1,8 +1,8 @@
-function [fileNameComplete, fileFolder, fileName] = generateFileName(fileFolder, pln, workspaceType)
-% GENERATEFILENAME - Generate consistent file names for matRad workspaces
+function [fileNameComplete, fileFolder, fileName] = matRad_generateFileName(fileFolder, pln, workspaceType)
+% matRad_generateFileName - Generate consistent file names for matRad workspaces
 %
 % Syntax:  [fileNameComplete, fileFolder, fileName] = ...
-%              generateFileName(fileFolder, pln, workspaceType)
+%              matRad_generateFileName(fileFolder, pln, workspaceType)
 %
 % Inputs:
 %   fileFolder     - Target save folder (string)

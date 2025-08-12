@@ -1,7 +1,7 @@
-function [slice, hleg] = matRadJoana_ShowSliceFast(ct, cst, doseCube, slice, doseWindow, boolPlotLegend)
-% MATRADJOANA_SHOWSLICEFAST - Quickly displays CT slice with dose overlay
+function [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow, boolPlotLegend)
+% MATRAD_SHOWSLICEFAST - Quickly displays CT slice with dose overlay
 %
-% Syntax:  [slice, hleg] = matRadJoana_ShowSliceFast(ct, cst, doseCube, slice, doseWindow)
+% Syntax:  [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow)
 %
 % Inputs:
 %   ct          - CT structure (struct)

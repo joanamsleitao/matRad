@@ -25,6 +25,7 @@ end
 
 % Handle EXTERNAL structure
 ixExternalMatches = find(contains(cst(:,2), VOINames.External.Aliases));
+               
 if isempty(ixExternalMatches)
     warning('No EXTERNAL structure defined!');
     ixExternal = [];

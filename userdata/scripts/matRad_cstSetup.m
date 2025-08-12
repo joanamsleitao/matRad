@@ -1,7 +1,7 @@
-function [cst, prescribedDose, ixPTV, ixExternal] = setupCSTandPrescribedDose(cst, VOINames, VOISites, mode)
-% SETUPCSTANDPRESCRIBEDDOSE - Validates and updates CST with colors and structure info
+function [cst, prescribedDose, ixPTV, ixExternal] = matRad_cstSetup(cst, VOINames, VOISites, mode)
+% matRad_cstSetup - Validates and updates CST with colors and structure info
 %
-% Syntax:  [cst, prescribedDose, ixPTV, ixExternal] = setupCSTandPrescribedDose(cst, mode)
+% Syntax:  [cst, prescribedDose, ixPTV, ixExternal] = matRad_cstSetup(cst, mode)
 %
 % Inputs:
 %   cst  - Constraint structure table (cell array)

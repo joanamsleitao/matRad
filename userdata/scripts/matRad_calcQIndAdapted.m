@@ -1,9 +1,9 @@
-function qi = matRadJoana_calcQualityIndicators(cst, pln, doseCube, refGy, refVol)
-% matRadJoana_calcQualityIndicators - Calculate DVH-based quality indicators
+function qi = matRad_calcQIndAdapted(cst, pln, doseCube, refGy, refVol)
+% matRad_calcQIndAdapted - Calculate DVH-based quality indicators
 %
 % Syntax:
-%   qi = matRadJoana_calcQualityIndicators(cst, pln, doseCube)
-%   qi = matRadJoana_calcQualityIndicators(cst, pln, doseCube, refGy, refVol)
+%   qi = matRad_calcQIndAdapted(cst, pln, doseCube)
+%   qi = matRad_calcQIndAdapted(cst, pln, doseCube, refGy, refVol)
 %
 % Inputs:
 %   cst      - matRad structure table

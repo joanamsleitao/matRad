@@ -24,6 +24,8 @@ function [ct, cst, pln, resultGUI] = importDicomForMatRad(dicomFolder)
         error('Please specify a folder containing DICOM files.');
     end
 
+warning('using importDicomForMatRad(dicomFolder). are you sure?')
+
     % Import DICOM data into matRad
     fprintf('Importing DICOM files from: %s\n', dicomFolder);
     [ct, cst, pln, resultGUI] = matRad_importDicom(dicomFolder);

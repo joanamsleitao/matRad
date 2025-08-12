@@ -35,6 +35,9 @@ function [hCMap,hCt,hContour] = matRadJoana_plotCTSlice(axesHandle,ct,cst,cubeId
 % See also: matRad_plotCtSlice, matRad_plotVoiContourSlice
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
+
+error('Function no longer in use').
+
 % Handle the argument list
 if ~exist('thresh','var') || isempty(thresh)
     thresh = [];

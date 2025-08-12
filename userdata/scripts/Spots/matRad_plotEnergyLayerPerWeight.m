@@ -98,7 +98,7 @@ for iBeamIdx = 1:numel(beamSelection)
         end
 
         plot(ax, repSpot(1), repSpot(2), shape, ...
-            'Color', c, 'MarkerSize', scaledMarkerSize, 'LineWidth', 1.5);
+            'Color', c, 'MarkerSize', markerSize, 'LineWidth', 1.5);
 
         energyKey = strrep(sprintf('e%.4f', e), ".", "_");
         if ~isfield(usedEnergies, energyKey)

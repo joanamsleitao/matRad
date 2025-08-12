@@ -1,7 +1,7 @@
-function printCSTObjectives(cst, rowIndices)
-% PRINTCSTOBJECTIVES - Prints a table of dose objectives for given CST rows
+function matRad_cstPrint(cst, rowIndices)
+% matRad_cstPrint - Prints a table of dose objectives for given CST rows
 %
-% Syntax:  printCSTObjectives(cst, rowIndices)
+% Syntax:  matRad_cstPrint(cst, rowIndices)
 %
 % Inputs:
 %   cst         - Constraint structure table (cell array)

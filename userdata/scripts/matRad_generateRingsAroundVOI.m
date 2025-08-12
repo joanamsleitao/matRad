@@ -1,7 +1,7 @@
-function [cst, ringInfo] = generateRingsAroundVOI(ct, cst, ring_mm, ixRefVOI, marginPTVRing_mm, visualize)
-% GENERATERINGSAROUNDVOI - Create concentric ring VOIs around reference structure
+function [cst, ringInfo] = matRad_generateRingsAroundVOI(ct, cst, ring_mm, ixRefVOI, marginPTVRing_mm, visualize)
+% matRad_GENERATERINGSAROUNDVOI - Create concentric ring VOIs around reference structure
 %
-% Syntax:  [cst, ringInfo] = generateRingsAroundVOI(ct, cst, ring_mm, ixRefVOI, marginPTVRing_mm, visualize)
+% Syntax:  [cst, ringInfo] = matRad_generateRingsAroundVOI(ct, cst, ring_mm, ixRefVOI, marginPTVRing_mm, visualize)
 %
 % Inputs:
 %   ct                 - CT structure (struct)

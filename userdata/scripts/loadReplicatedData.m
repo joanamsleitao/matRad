@@ -25,7 +25,7 @@ function [cst, pln, stf, doseCubeCurrent, wCurrent] = loadReplicatedData(patient
 % See also: createReplicatedPlan, analyzePlanDose
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+warning('Using loadReplicatedData, maybe change?');
 
 fileOptions = dir(fullfile(patientFolderPath, '*DoseReproduction*.mat'));
 

@@ -1,74 +1,61 @@
-function matRadJoana_showDVH(dvhInput, cst, varargin)
-% MATRADJOANA_SHOWDVH - Plot DVHs from single or multiple sources for each VOI
+function matRad_showMultiDVH(dvhMulti, cst, varargin)
+% MATRAD_PLOTMULTIDVH - Plot DVHs from multiple sources for each VOI
 %
 % Syntax:
-%   matRadJoana_showDVH(dvh, cst)
-%   matRadJoana_showDVH(dvhStruct, cst, ...)
+%   matRad_plotMultiDVH(dvhResults, cst)
 %
 % Inputs:
-%   dvhInput     - Either a struct array of DVH data, or a struct of structs (dvh.source.voi)
-%   cst          - matRad CST cell array
+%   dvhResults - struct of structs (dvhResults.source.voi) containing fields:
+%                .doseGrid, .volumePoints, .name
+%   cst        - matRad CST cell array
 %
 % Optional Name-Value Pairs:
-%   'axesHandle'     - Axes to plot into (default: gca)
-%   'LineWidth'      - Width of DVH lines (default: 2.0)
-%   'plotLegend'     - true/false to show legend (default: true)
-%   'annotateMetrics' - true/false to annotate D98/D2 on graph (default: false)
+%   'axesHandle'  - Axes to plot into (default: gca)
+%   'LineWidth'   - Width of DVH lines (default: 2.0)
+%   'plotLegend'  - true/false (default: true)
 %
 % Output:
-%   A DVH plot on the specified axes
+%   A combined DVH plot with colored VOIs and styled sources.
 %
 
 %% Parse input
 p = inputParser;
-p.addRequired('dvhInput', @isstruct);
+p.addRequired('dvhResults', @isstruct);
 p.addRequired('cst', @iscell);
 p.addParameter('axesHandle', [], @(x) isempty(x) || isgraphics(x, 'axes'));
 p.addParameter('LineWidth', 2.0, @(x) isnumeric(x) && x > 0);
 p.addParameter('plotLegend', true, @(x) islogical(x) && isscalar(x));
 p.addParameter('annotateMetrics', false, @(x) islogical(x) && isscalar(x));
-p.parse(dvhInput, cst, varargin{:});
+p.parse(dvhMulti, cst, varargin{:});
 
 ax = p.Results.axesHandle;
 if isempty(ax), ax = gca; end
 lineWidth = p.Results.LineWidth;
 plotLegend = p.Results.plotLegend;
-annotateMetrics = p.Results.annotateMetrics;
 
-matRad_cfg = MatRad_Config.instance();
 hold(ax, 'on');
 
-%% Determine if multi-source DVH
-% Determine if input is a multi-source DVH (dvh.source.voi)
-isMultiSource = isstruct(dvhInput) && ...
-                ~isfield(dvhInput, 'doseGrid') && ...
-                all(structfun(@(s) isstruct(s) && isfield(s, 'doseGrid'), dvhInput));
+matRad_cfg = MatRad_Config.instance();
+annotateMetrics = p.Results.annotateMetrics;
 
-if isMultiSource
-    sourceNames = fieldnames(dvhInput);
-    voiNames = {dvhInput.(sourceNames{1}).name}.';
-    numSources = numel(sourceNames);
-    dvhArray = dvhInput;
-else
-    sourceNames = {'Primary'};
-    dvhArray.Primary = dvhInput;
-    voiNames = {dvhInput.name}.';
-    numSources = 1;
-end
-numVois = numel(voiNames);
+%% Identify all sources and VOIs
+sourceNames = fieldnames(dvhMulti);
+voiNames = {dvhMulti.(sourceNames{1}).name}.';
+numSources = numel(sourceNames);
+numVois = size(dvhMulti.(sourceNames{1}),2);
 
 % Generate line styles for sources
 lineStyles = {'-', '--', ':', '-.'};
-assert(numSources <= numel(lineStyles), 'Too many sources for line styles.');
+assert(numSources <= numel(lineStyles), 'Too many sources, not enough line styles!');
 
-% Get colors from CST
+% Build color map for VOIs using CST
 visibleIx = cellfun(@(c) c.Visible == 1, cst(:,5));
 visibleNames = cst(visibleIx,2);
 visibleColors = cell2mat(cellfun(@(c) c.visibleColor, cst(visibleIx,5), 'UniformOutput', false));
 [~, voiColorIdx] = ismember(voiNames, visibleNames);
 voiColors = visibleColors(voiColorIdx,:);
 
-%% Legend handles
+%% Track legend handles
 voiLegendHandles = gobjects(numVois,1);
 sourceLegendHandles = gobjects(numSources,1);
 
@@ -81,7 +68,7 @@ for s = 1:numSources
 
     for v = 1:numVois
         voi = voiNames{v};
-        dvh = dvhArray.(source);
+        dvh = dvhMulti.(source);
         dvh = dvh(v);
         if isempty(dvh.volumePoints)
             continue;
@@ -89,16 +76,17 @@ for s = 1:numSources
 
         x = dvh.doseGrid;
         y = dvh.volumePoints;
+
         maxDose = max(maxDose, max(x));
         maxVol = max(maxVol, max(y));
 
-        % Plot VOI line with its color and source style
+        % Plot each line regardless of source
         h = plot(ax, x, y, ...
             'LineStyle', style, ...
             'Color', voiColors(v,:), ...
             'LineWidth', lineWidth);
 
-        % Only label the first source's VOIs
+        % Only add legend entry for the first source per VOI
         if s == 1
             h.DisplayName = string(voi);
             voiLegendHandles(v) = h;
@@ -106,8 +94,9 @@ for s = 1:numSources
             h.Annotation.LegendInformation.IconDisplayStyle = 'off';
         end
 
-        % Optional: annotate D98 and D2
-        if annotateMetrics && s == 1
+        % Optional: annotate key DVH metrics
+        if annotateMetrics
+            % D98: Dose at 98% volume
             [~, ix98] = min(abs(y - 98));
             text(ax, x(ix98), y(ix98), ' D_{98}', ...
                  'VerticalAlignment', 'bottom', ...
@@ -115,16 +104,28 @@ for s = 1:numSources
                  'FontSize', 8, ...
                  'Color', voiColors(v,:));
 
+            % D2: Dose at 2% volume
             [~, ix2] = min(abs(y - 2));
             text(ax, x(ix2), y(ix2), ' D_{2}', ...
                  'VerticalAlignment', 'top', ...
                  'HorizontalAlignment', 'left', ...
                  'FontSize', 8, ...
                  'Color', voiColors(v,:));
+
+            % % V20Gy: Volume receiving 20Gy (if applicable)
+            % [~, ix20] = min(abs(x - 20));
+            % v20 = y(ix20);
+            % if v20 > 0
+            %     text(ax, x(ix20), v20, ' V_{20Gy}', ...
+            %          'VerticalAlignment', 'middle', ...
+            %          'HorizontalAlignment', 'right', ...
+            %          'FontSize', 8, ...
+            %          'Color', voiColors(v,:));
+            % end
         end
     end
 
-    % Fake black line for source legend
+    % Fake black line for source style (legend only)
     hFake = plot(ax, NaN, NaN, ...
         'LineStyle', style, ...
         'Color', [0 0 0], ...
@@ -133,13 +134,17 @@ for s = 1:numSources
     sourceLegendHandles(s) = hFake;
 end
 
-%% Final plot styling
+
+%% Styling
 xlabel(ax, 'Dose [Gy]', 'FontSize', matRad_cfg.gui.fontSize);
 ylabel(ax, 'Volume [%]', 'FontSize', matRad_cfg.gui.fontSize);
-grid(ax, 'on'); grid(ax, 'minor');
+grid(ax, 'on');
+grid(ax,'minor');
 box(ax, 'on');
+
 xlim(ax, [0 1.05*maxDose]);
 ylim(ax, [0 1.1*maxVol]);
+
 set(ax, 'LineWidth', 1, 'FontSize', matRad_cfg.gui.fontSize);
 
 %% Final legend

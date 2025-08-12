@@ -1,7 +1,7 @@
 function [cst, newIx] = matRad_VOIOperations(cst, ix1, ix2, operation, newName)
-% COMBINEVOIVOXELS Combine voxel indices from two VOIs in CST with set operations
+% matRad_VOIOperations Combine voxel indices from two VOIs in CST with set operations
 %
-% [cst, newIx] = combineVOIVoxels(cst, ix1, ix2, operation, newName)
+% [cst, newIx] = matRad_VOIOperations(cst, ix1, ix2, operation, newName)
 %
 % Inputs:
 %   cst       - CST cell array

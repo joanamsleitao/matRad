@@ -1,7 +1,7 @@
-function flaggedStruct = reportOARDeviations(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
-% REPORTOARDEVIATIONS - Compares OAR metrics and optionally prints CST objectives
+function report = matRad_compareVOI(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
+% matRad_compareVOI - Compares OAR metrics and optionally prints CST objectives
 %
-% Syntax:  flaggedStruct = reportOARDeviations(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
+% Syntax:  report = matRad_compareVOI(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
 %
 % Inputs:
 %   cst             - Constraint structure table (cell array)
@@ -12,7 +12,7 @@ function flaggedStruct = reportOARDeviations(cst, qi, qiReference, metricsToChec
 %   showObjectives  - Show CST objectives (logical, optional)
 %
 % Outputs:
-%   flaggedStruct   - Structure of flagged deviations (struct array)
+%   report   - Structure of flagged deviations (struct array)
 %
 % Other m-files required: none
 % Subfunctions: formatCSTObjectiveLine
@@ -77,7 +77,7 @@ function flaggedStruct = reportOARDeviations(cst, qi, qiReference, metricsToChec
 
     % Determine which entries are flagged
     flagged = abs([relDiffs.percent]) > 15 & [relDiffs.absDiff] > 2;
-    flaggedStruct = relDiffs(flagged);
+    report = relDiffs(flagged);
 
     % Group results by VOI idx
     if isempty(relDiffs)

@@ -1,7 +1,7 @@
-function voxelIndex = matradJoana_worldToVoxel(worldCoord, ctInfo)
-% MATRADJOANA_WORLDTOVOXEL - Converts world coordinates to voxel indices
+function voxelIndex = matRad_worldToVoxel(worldCoord, ctInfo)
+% matrad_worldToVoxel - Converts world coordinates to voxel indices
 %
-% Syntax:  voxelIndex = matradJoana_worldToVoxel(worldCoord, ctInfo)
+% Syntax:  voxelIndex = matRad_worldToVoxel(worldCoord, ctInfo)
 %
 % Inputs:
 %   worldCoord - World coordinates [x y z] (vector)
