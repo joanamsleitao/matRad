@@ -60,12 +60,17 @@ end
 cMapScale = size(cMap,1) - 1;
 
 %Prepare the slice and convert it to uint8
+
 if plane == 1 % Coronal plane
 	ctIndexed = uint8(cMapScale*(squeeze((ctCube{cubeIdx}(slice,:,:)-window(1))/(window(2) - window(1)))));      
 elseif plane == 2 % sagittal plane
     ctIndexed = uint8(cMapScale*(squeeze((ctCube{cubeIdx}(:,slice,:)-window(1))/(window(2) - window(1)))));	
 elseif plane == 3 % Axial plane
     ctIndexed = uint8(cMapScale*(squeeze((ctCube{cubeIdx}(:,:,slice)-window(1))/(window(2) - window(1)))));
+    if numel(size(ctCube{cubeIdx})) < 3
+        ctDim = num2str(size(ctCube{cubeIdx}));
+        error('Please check the size of the ct - current ctCube dimention is %s. This is a common error during dicom import.', ctDim)
+    end
 else
 	matRad_cfg.dispError('Invalid plane ''%d'' selected for visualization!',plane);
 end

@@ -1,20 +1,19 @@
-function medianSpotCube = matRad_plotSpotsSlice(ax, ct, stf, markerSize, weights, showRayTracing, useGeoSpots)
-% matRad_plotSpotsSlice Visualizes all spot positions with weights and optional ray tracing.
-%
-% if weight == 0, then spot will have a tiny marker
+function medianSpotCube = matRad_plotSpotsSlice(ax, ct, stf, markerSize, weights, showRayTracing, useGeoSpots, sliceIdx)
+% matRad_plotSpotsSlice - Visualizes spot positions for a given CT slice.
 %
 % INPUTS:
-%   ax, ct, stf - axes handle, CT structure, treatment plan struct
-%   markerSize - marker size scale (default 5)
-%   weights - vector of weights for spots (default ones)
-%   showRayTracing - bool to show ray paths (default false)
-%   useGeoSpots - bool to plot spots from spotsInfoGeo (default false)
+%   ax, ct, stf       - axes handle, CT structure, treatment plan struct
+%   markerSize        - marker size scale (default 5)
+%   weights           - vector of weights for spots (default ones)
+%   showRayTracing    - bool to show ray paths (default false)
+%   useGeoSpots       - bool to plot spots from spotsInfoGeo (default false)
+%   sliceIdx          - CT slice index (Z direction) to show spots (optional).
+%                       If empty, shows all spots (default).
 %
-% OUTPUTS:
-%   medianSpotCube - for zoom
-%
-% Legend: colors = energies, shapes = beams, diamonds = geo spots
+% OUTPUT:
+%   medianSpotCube    - Median spot position [X Y Z] (for zoom)
 
+%% --- Defaults
 if ~exist('markerSize','var') || isempty(markerSize)
     markerSize = 5;
 end
@@ -28,29 +27,29 @@ end
 if ~exist('useGeoSpots','var') || isempty(useGeoSpots)
     useGeoSpots = 0;
 end
+if ~exist('sliceIdx','var')
+    sliceIdx = []; % no filtering
+end
 if isempty(ax) || ~isvalid(ax)
     warning('Invalid or missing axes handle. Nothing will be plotted.');
     return;
 end
 hold(ax, 'on');
 
-%%
+%% --- Setup
 wMax = max(weights);
 colors = lines(10);
 shapes = {'o', '+', 's', '^', 'v', 'x', 'd', 'p', 'h', '*'};
+
 usedEnergies = containers.Map('KeyType','double','ValueType','any');
-usedBeams = containers.Map('KeyType','int32','ValueType','any');
+usedBeams    = containers.Map('KeyType','int32','ValueType','any');
 
 legendGeoSpotHandled = false;
 legendGeoSpotHandle = [];
 
-%%
-numBeams = numel(stf);
-
-% Initialize spot list to calculate median position
 allSpotCubes = [];
 
-% Build energy to color map for consistency
+%% --- Build energy-to-color map
 allEnergies = [stf.ray];
 allEnergies = [allEnergies.energy];
 uniqueEnergies = unique(allEnergies);
@@ -59,11 +58,10 @@ for i = 1:numel(uniqueEnergies)
     energyToColorMap(uniqueEnergies(i)) = i;
 end
 
-for iBeam = 1:numBeams
+%% --- Loop beams/rays/spots
+for iBeam = 1:numel(stf)
     shape = shapes{mod(iBeam-1,numel(shapes))+1};
-    numRays = numel(stf(iBeam).ray);
-
-    for iRay = 1:numRays
+    for iRay = 1:numel(stf(iBeam).ray)
         currentRay = stf(iBeam).ray(iRay).rayTracerInfo;
 
         if showRayTracing
@@ -76,19 +74,31 @@ for iBeam = 1:numBeams
         numSpots = numel(stf(iBeam).ray(iRay).energy);
         for iSpot = 1:numSpots
             wIx = matRad_spotIx(stf, iBeam, iRay, iSpot);
-            w = weights(wIx)/wMax;
-            if w == 0
-                mSize = markerSize * 0.01;
-            else
-                mSize = markerSize * w;
-            end
-            energy = stf(iBeam).ray(iRay).energy(iSpot);
+            w   = weights(wIx)/wMax;
+            mSize = markerSize * max(w, 0.2);
+
+            energy   = stf(iBeam).ray(iRay).energy(iSpot);
             colorIdx = mod(energyToColorMap(energy)-1, size(colors,1)) + 1;
             c = colors(colorIdx, :);
-            spotCube = currentRay.perSpot(iSpot).spotCube;
-            h = plot(ax, spotCube(1), spotCube(2), shape, 'Color', c, 'MarkerSize', mSize, 'LineWidth', 1.2);
 
-            % Register legend handles for energies and beams
+            spotCube = currentRay.perSpot(iSpot).spotCube; % [x y z]
+
+            % --- Slice filtering ---
+            % if ~isempty(sliceIdx) && round(spotCube(3)) ~= sliceIdx
+            %     continue; % skip if not in this slice
+            % end
+
+            if w == 0 % && round(spotCube(3)) ~= sliceIdx
+                continue; % skip if not in this slice
+            end
+            % 
+            % if w == 0
+            %     mSize = 0;
+            % end
+
+            h = plot(ax, spotCube(1), spotCube(2), shape, 'Color', c, ...
+                'MarkerSize', mSize, 'LineWidth', 1.2);
+
             if ~isKey(usedEnergies, energy)
                 usedEnergies(energy) = h;
             end
@@ -96,13 +106,16 @@ for iBeam = 1:numBeams
                 usedBeams(iBeam) = h;
             end
 
-            allSpotCubes(end+1, :) = spotCube; %#ok<AGROW>
+            allSpotCubes(end+1,:) = spotCube; %#ok<AGROW>
         end
 
-        % Geo spots plotting
+        % --- Geo spots ---
         if useGeoSpots && isfield(stf(iBeam).ray(iRay), 'spotsInfoGeo')
             for iSpot = 1:numel(stf(iBeam).ray(iRay).spotsInfoGeo)
                 pos = stf(iBeam).ray(iRay).spotsInfoGeo(iSpot).spotCube;
+                if ~isempty(sliceIdx) && round(pos(3)) ~= sliceIdx
+                    continue;
+                end
                 hGeo = plot(ax, pos(1), pos(2), 'kd', 'MarkerSize', 6, 'LineWidth', 1.2);
                 if ~legendGeoSpotHandled
                     legendGeoSpotHandle = hGeo;
@@ -113,7 +126,8 @@ for iBeam = 1:numBeams
     end
 end
 
-%%
+%% --- Build legends
+
 % Create dummy handles for legend entries
 holdState = ishold(ax);
 hold(ax, 'on');
@@ -167,7 +181,8 @@ end
 
 legend(ax, legendHandles, legendLabels, 'Location', 'bestoutside', 'Interpreter', 'none', 'FontSize', 10);
 
-% Compute median cube position for zooming (X = col, Y = row)
+%%
+% Compute median for zooming
 if ~isempty(allSpotCubes)
     medianSpotCube = median(allSpotCubes, 1); % [X Y Z]
 else

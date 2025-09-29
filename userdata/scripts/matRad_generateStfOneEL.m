@@ -1,4 +1,4 @@
-ffunction [stf_oneEL, stf_mb, stf_sb] = matRadJoana_generateStfOneEL(ct, cst, pln)
+ffunction [stf_oneEL, stf_mb, stf_sb] = matRad_generateStfOneEL(ct, cst, pln)
 % matRadJoana_generateStfOneEL - Create STF with one energy layer per ray
 %
 % Syntax:

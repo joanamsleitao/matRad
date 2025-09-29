@@ -65,7 +65,12 @@ classdef (Abstract) matRad_DoseOptimizationFunction
         function obj = setDoseParameters(obj,doseParams)
             % set only the dose related parameters.
             ix = cellfun(@(c) isequal('dose',c),obj.parameterTypes);
-            obj.parameters(ix) = num2cell(doseParams);            
+            obj.parameters(ix) = num2cell(doseParams);  
+
+            % obj.parameters{ix} = num2cell(doseParams);  
+            % Original 
+%            obj.parameters(ix) = num2cell(doseParams);            
+
         end        
     end
     

@@ -1,9 +1,12 @@
-function [ct, cst, resultGUI] = matRad_loadOrImportDicom(wildcard, wildcardParts, baseFolder)
+function [ct, cst, resultGUI] = matRad_loadOrImportDicom(patientName, filePath, wildcard)
 % matRad_loadOrImportDicom - Loads existing matRad patient data or imports from DICOM
 %
 % Syntax:  [ct, cst, resultGUI] = matRad_loadOrImportDicom(wildcard, wildcardParts, baseFolder)
 %
 % Inputs:
+%   patientName
+%   filePath
+%   wildcard
 %   wildcard       - String with main folder or partial identifier
 %   wildcardParts  - Cell array with separated wildcard parts
 %   baseFolder     - Root path containing patient folders
@@ -17,27 +20,27 @@ function [ct, cst, resultGUI] = matRad_loadOrImportDicom(wildcard, wildcardParts
 % 1. Identify target folder
 % -------------------------------------------------------------------------
 if nargin < 3
-    error('Not enough input arguments. Need wildcard, wildcardParts, baseFolder.');
+    error('Not enough input arguments.');
 end
 
-folderMatches = dir(fullfile(baseFolder, ['*', wildcard, '*']));
+folderMatches = dir(fullfile(filePath, ['*', wildcard, '*']));
 if isempty(folderMatches)
-    error('No folder matching "%s" found in %s', wildcard, baseFolder);
-elseif numel(folderMatches) > 1
+    error('No file matching "%s" found in %s', wildcard, filePath);
+elseif numel(folderMatches) > 2
     error('Multiple folders match "%s". Please refine wildcard.', wildcard);
 end
 
-targetFolder = fullfile(folderMatches(1).folder, folderMatches(1).name);
+targetFolder = folderMatches; % fullfile(folderMatches(1).folder, folderMatches(1).name);
 
 % -------------------------------------------------------------------------
-% 2. Detect subfolder if wildcardParts{2} is given
+% 2. Detect subfolder if wildcard is given
 % -------------------------------------------------------------------------
-if numel(wildcardParts) > 1 && ~isempty(wildcardParts{2})
-    subfolderCandidate = fullfile(targetFolder, wildcardParts{2});
-    if exist(subfolderCandidate, 'dir')
-        targetFolder = subfolderCandidate;
-    end
-end
+% if numel(wildcardParts) > 1 && ~isempty(wildcard)
+%     subfolderCandidate = fullfile(targetFolder, wildcard);
+%     if exist(subfolderCandidate, 'dir')
+%         targetFolder = subfolderCandidate;
+%     end
+% end
 
 % -------------------------------------------------------------------------
 % 3. Determine if this is CT-only or contains dose
@@ -48,18 +51,18 @@ isCTonly = isempty(wildcard) || contains(wildcard, 'RTFiles', 'IgnoreCase', true
 % -------------------------------------------------------------------------
 % 4. MAT file search helper (nested function)
 % -------------------------------------------------------------------------
-    function matFiles = smartMatSearch()
-        % First try sub-part in filename if given
-        if numel(wildcardParts) > 1 && ~isempty(wildcardParts{2})
-            matFiles = dir(fullfile(targetFolder, ['*', wildcardParts{2}, '*.mat']));
+    function matFiles = matRad_fileSearch()
+        First try sub-part in filename if given
+        if numel(wildcardParts) > 1 && ~isempty(wildcard)
+            matFiles = dir(fullfile(targetFolder, ['*', wildcard, '*.mat']));
         else
             matFiles = [];
         end
-        % If not found, try main wildcard
+        If not found, try main wildcard
         if isempty(matFiles) && ~isempty(wildcard)
             matFiles = dir(fullfile(targetFolder, ['*', wildcard, '*.mat']));
         end
-        % Fallback: any mat file
+        Fallback: any mat file
         if isempty(matFiles)
             matFiles = dir(fullfile(targetFolder, '*.mat'));
         end
@@ -80,7 +83,7 @@ isCTonly = isempty(wildcard) || contains(wildcard, 'RTFiles', 'IgnoreCase', true
 % 6. CT-only branch
 % -------------------------------------------------------------------------
 if isCTonly
-    matFiles = smartMatSearch();
+    matFiles = matRad_fileSearch();
 
     if isempty(matFiles)
         fprintf('No mat file found. Importing DICOM from %s...\n', targetFolder);
@@ -89,8 +92,8 @@ if isCTonly
         movefile(matFileSaved, fullfile(targetFolder, 'CtandRTStruct.mat'));
         load(fullfile(targetFolder, 'CtandRTStruct.mat'), 'ct', 'cst', 'resultGUI');
     elseif numel(matFiles) > 1
-        if numel(wildcardParts) > 1 && ~isempty(wildcardParts{2})
-            errorWithMatches(wildcardParts{2}, matFiles);
+        if numel(wildcardParts) > 1 && ~isempty(wildcard)
+            errorWithMatches(wildcard, matFiles);
         else
             errorWithMatches(wildcard, matFiles);
         end
@@ -102,7 +105,7 @@ if isCTonly
 % 7. Dose-containing branch
 % -------------------------------------------------------------------------
 else
-    matFiles = smartMatSearch();
+    matFiles = matRad_fileSearch();
 
     if isempty(matFiles)
         fprintf('No matching .mat file found. Importing DICOM from %s...\n', targetFolder);
@@ -111,8 +114,8 @@ else
         movefile(matFileSaved, fullfile(targetFolder, 'CtandRTStructAndDose.mat'));
         load(fullfile(targetFolder, 'CtandRTStructAndDose.mat'), 'ct', 'cst', 'resultGUI');
     elseif numel(matFiles) > 1
-        if numel(wildcardParts) > 1 && ~isempty(wildcardParts{2})
-            errorWithMatches(wildcardParts{2}, matFiles);
+        if numel(wildcardParts) > 1 && ~isempty(wildcard)
+            errorWithMatches(wildcard, matFiles);
         else
             errorWithMatches(wildcard, matFiles);
         end

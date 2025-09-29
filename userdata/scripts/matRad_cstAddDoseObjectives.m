@@ -1,7 +1,7 @@
-function cst = matRad_addDoseObjectives(cst, VOIs, metrics, prescribedDoseOverride, keepExistingObjectives)
-% matRad_addDoseObjectives - Adds dose objectives to CST from manually defined metrics
+function cst = matRad_cstAddDoseObjectives(cst, VOIs, metrics, prescribedDoseOverride, keepExistingObjectives)
+% matRad_cstAddDoseObjectives - Adds dose objectives to CST from manually defined metrics
 %
-% Syntax: cst = addManualDoseObjectives(cst, VOIs, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
+% Syntax: cst = matRad_cstAddDoseObjectives(cst, VOIs, basePenalty, metrics, prescribedDoseOverride, keepExistingObjectives)
 %
 % Inputs:
 %   cst                    - CST table (cell array)

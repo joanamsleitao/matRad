@@ -1,4 +1,4 @@
-function [fileNameComplete, fileFolder, fileName, foundMatches] = matRad_findFileName(fileFolder, gantrySep, res, workspaceType)
+function [fileNameComplete, fileFolder, fileName, foundMatches] = matRad_filenameGet(fileFolder, gantrySep, res, workspaceType)
 % FINDFILENAME - Find matRad workspace file based on gantry angle and resolution
 %
 % Syntax:  [fileNameComplete, fileFolder, fileName, foundMatches] = ...

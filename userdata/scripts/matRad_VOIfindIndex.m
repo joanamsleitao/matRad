@@ -1,4 +1,4 @@
-function ixVOI = matRad_findVOIIndex(cst, aliases)
+function ixVOI = matRad_VOIfindIndex(cst, aliases)
 % matRad_findVOIIndex Find VOI index in CST matching any alias string
 %
 % ixVOI = matRad_findVOIIndex(cst, aliases)

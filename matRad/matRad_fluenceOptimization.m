@@ -93,7 +93,10 @@ for i = 1:size(cst,1)
         for fObjCell = cst{i,6}
             dParams = fObjCell{1}.getDoseParameters();
             %Don't care for Inf constraints
+            if iscell(dParams), dParams = dParams{1}; end
             dParams = dParams(isfinite(dParams));
+% Original
+%             dParams = dParams(isfinite(dParams));
             %Add do dose list
             fDoses = [fDoses dParams];
         end

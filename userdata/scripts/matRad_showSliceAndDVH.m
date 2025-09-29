@@ -1,4 +1,4 @@
-function [hleg, dvh] = matRad_showSliceAndDVH(ct, cst, doseCube, dvh, figName, slice, doseWindow, boolPlotLegend)
+function [f, hleg, dvh] = matRad_showSliceAndDVH(ct, cst, doseCube, dvh, figName, slice, doseWindow, boolPlotLegend, zoomFactor)
 % MATRADJOANA_showSLICEANDDVH
 %   Displays a dose distribution slice and the corresponding DVH side-by-side.
 %
@@ -56,12 +56,16 @@ if ~exist('boolPlotLegend', 'var') || isempty(boolPlotLegend)
     boolPlotLegend = true;
 end
 
+if ~exist('zoomFactor', 'var') || isempty(zoomFactor)
+    zoomFactor = [];
+end
+
 % Get matRad GUI font size config
 matRad_cfg = MatRad_Config.instance();
 fontSizeValue = matRad_cfg.gui.fontSize;
 
 %% -------------------- Figure Setup --------------------
-figure('Units', 'normalized', ...
+f = figure('Units', 'normalized', ...
        'OuterPosition', [0 0 1 1], ...
        'Color', [1 1 1], ...
        'Name', figName);
@@ -71,7 +75,7 @@ title(t, figName);
 
 %% -------------------- Dose Slice Plot --------------------
 nexttile
-[~, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow);
+[~, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow, [], zoomFactor);
 set(gca, 'LineWidth', 0.5, 'FontSize', fontSizeValue);
 title('Dose Distribution');
 

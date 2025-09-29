@@ -1,4 +1,4 @@
-function [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow, boolPlotLegend)
+function [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow, boolPlotLegend, levelZoom)
 % MATRAD_SHOWSLICEFAST - Quickly displays CT slice with dose overlay
 %
 % Syntax:  [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow)
@@ -21,9 +21,9 @@ function [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWind
 % See also: matRad_plotSliceWrapper, matRadJoana_plotCTSlice
 %
 
+isoCenterIx = matRad_world2cubeIndex(matRad_getIsoCenter(cst,ct,0),ct);
 if ~exist('slice', 'var') || isempty(slice)
-    slice = matRad_world2cubeIndex(matRad_getIsoCenter(cst,ct,0),ct);
-    slice = slice(3);
+    slice = isoCenterIx(3);
 end
 
 if ~exist('doseWindow', 'var') || isempty(doseWindow)
@@ -33,6 +33,11 @@ end
 if ~exist('boolPlotLegend', 'var') || isempty(boolPlotLegend)
     boolPlotLegend = 1;
 end
+
+if ~exist('levelZoom', 'var') || isempty(levelZoom)
+    levelZoom = 0;
+end
+
 
 plane = 3;
 
@@ -47,12 +52,29 @@ if nargin < 3 || isempty(doseCube)
     matRad_plotAxisLabels(gca,ct,plane,slice,14,[])
 
 else
-    matRad_plotSliceWrapper(axesHandle,ct,cst,1,doseCube,3,slice,...
+    colorBarLabel = 'Dose [Gy]';
+    % [ctHandle,cMap,window] = matRad_plotCtSlice(axesHandle,ctCube,cubeIdx,plane,slice,cMap,window)
+    matRad_plotSliceWrapper(axesHandle, ct,cst,1,doseCube,3,slice,...
         [], [], [],...
         [], doseWindow, [], [],...
-        [],boolPlotLegend);
+        colorBarLabel, boolPlotLegend);
 end
-hleg = axesHandle.Legend;
-hleg.FontSize = 10;
-hleg.Location = 'bestoutside';
+
+if boolPlotLegend == 1
+    hleg = axesHandle.Legend;
+    hleg.FontSize = 10;
+    hleg.Location = 'bestoutside';
+end
+
+% Zoom
+if ~isempty(levelZoom)
+    [xlimVals, ylimVals] = matRad_getZoomWindow(isoCenterIx(2), isoCenterIx(1), ct, levelZoom);
+    if xlimVals(1) ~= xlimVals(2) && ylimVals(1) ~= ylimVals(2)
+        set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
+    else
+        xlimVals = [xlimVals(1)-30, xlimVals(2)+30];
+        ylimVals = [ylimVals(1)-30, ylimVals(2)+30];
+        set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
+    end
+end
 end

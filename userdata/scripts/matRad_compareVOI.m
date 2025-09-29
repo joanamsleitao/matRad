@@ -1,4 +1,4 @@
-function report = matRad_compareVOI(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
+function [report, relDiffs] = matRad_compareVOI(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)
 % matRad_compareVOI - Compares OAR metrics and optionally prints CST objectives
 %
 % Syntax:  report = matRad_compareVOI(cst, qi, qiReference, metricsToCheck, printOnlyFlagged, showObjectives)

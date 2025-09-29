@@ -1,8 +1,8 @@
-function cst = matRad_addDoseObjectivesMerged(cst, VOIs, sourceData, basePenalty, varargin)
-% matRad_addDoseObjectivesMerged - Add dose objectives to CST from various data sources
+function cst = matRad_cstAddDoseObjectivesMerged(cst, VOIs, sourceData, basePenalty, varargin)
+% matRad_cstAddDoseObjectivesMerged - Add dose objectives to CST from various data sources
 %
 % Syntax:
-%   cst = matRad_addDoseObjectivesMerged(cst, VOIs, sourceData, basePenalty, 'sourceType', sourceType, ...)
+%   cst = matRad_cstAddDoseObjectivesMerged(cst, VOIs, sourceData, basePenalty, 'sourceType', sourceType, ...)
 %
 % Inputs:
 %   cst         - CST cell array to modify

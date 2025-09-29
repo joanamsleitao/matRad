@@ -1,4 +1,4 @@
-function matRad_showDVHAdapted(dvhInput, cst, varargin)
+function fig = matRad_showDVHAdapted(dvhInput, cst, varargin)
 % MATRAD_SHOWDVH - Plot DVHs from single or multiple sources for each VOI
 %
 % Syntax:
@@ -29,8 +29,13 @@ p.addParameter('plotLegend', true, @(x) islogical(x) && isscalar(x));
 p.addParameter('annotateMetrics', false, @(x) islogical(x) && isscalar(x));
 p.parse(dvhInput, cst, varargin{:});
 
-ax = p.Results.axesHandle;
-if isempty(ax), ax = gca; end
+ax = gca;
+if isempty(ax)
+    fig = figure('Color','w');
+    ax = gca;
+else
+    fig = gcf;
+end
 lineWidth = p.Results.LineWidth;
 plotLegend = p.Results.plotLegend;
 annotateMetrics = p.Results.annotateMetrics;
@@ -41,8 +46,8 @@ hold(ax, 'on');
 %% Determine if multi-source DVH
 % Determine if input is a multi-source DVH (dvh.source.voi)
 isMultiSource = isstruct(dvhInput) && ...
-                ~isfield(dvhInput, 'doseGrid') && ...
-                all(structfun(@(s) isstruct(s) && isfield(s, 'doseGrid'), dvhInput));
+    ~isfield(dvhInput, 'doseGrid') && ...
+    all(structfun(@(s) isstruct(s) && isfield(s, 'doseGrid'), dvhInput));
 
 if isMultiSource
     sourceNames = fieldnames(dvhInput);
@@ -110,17 +115,17 @@ for s = 1:numSources
         if annotateMetrics && s == 1
             [~, ix98] = min(abs(y - 98));
             text(ax, x(ix98), y(ix98), ' D_{98}', ...
-                 'VerticalAlignment', 'bottom', ...
-                 'HorizontalAlignment', 'left', ...
-                 'FontSize', 8, ...
-                 'Color', voiColors(v,:));
+                'VerticalAlignment', 'bottom', ...
+                'HorizontalAlignment', 'left', ...
+                'FontSize', 8, ...
+                'Color', voiColors(v,:));
 
             [~, ix2] = min(abs(y - 2));
             text(ax, x(ix2), y(ix2), ' D_{2}', ...
-                 'VerticalAlignment', 'top', ...
-                 'HorizontalAlignment', 'left', ...
-                 'FontSize', 8, ...
-                 'Color', voiColors(v,:));
+                'VerticalAlignment', 'top', ...
+                'HorizontalAlignment', 'left', ...
+                'FontSize', 8, ...
+                'Color', voiColors(v,:));
         end
     end
 

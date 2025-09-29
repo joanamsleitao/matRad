@@ -1,4 +1,4 @@
-function matRad_showSpotsInSlice(ct, cst, stf, doseCube, weights)
+function matRad_showSpotsInSlice(ct, cst, stf, doseCube, weights, slice)
 % MATRAD_SHOWSPOTSINSLICE
 %   Displays all proton spot positions overlaid on a dose distribution slice,
 %   zoomed in around the median spot location.
@@ -24,20 +24,25 @@ function matRad_showSpotsInSlice(ct, cst, stf, doseCube, weights)
 %
 % -------------------------------------------------------------------------
 
+if ~exist('slice', 'var') || isempty(slice)
+    slice = matRad_world2cubeIndex(matRad_getIsoCenter(cst,ct,0),ct);
+    slice = slice(3);
+end
+
 %% -------------------- Figure Setup --------------------
 figure('Units', 'normalized', ...
        'OuterPosition', [0 0 1 1]);
    
 %% -------------------- Dose Slice Plot --------------------
 % Show CT + dose overlay
-matRadJoana_ShowSliceFast(ct, cst, doseCube);
+matRad_showSliceFast(ct, cst, doseCube, slice);
 ax = gca; % Get current axes handle
 
 %% -------------------- Plot Spot Positions --------------------
-markerSize = 5;
+markerSize = 8;
 % Overlay spots and get median XY coordinates (in world coords)
-medianCoords = matRad_plotSpotsSlice(ax, ct, stf, markerSize, weights);
-
+% medianCoords = matRad_plotSpotsSlice(ax, ct, stf, markerSize, weights);
+medianCoords = matRad_plotSpotsSlice(ax, ct, stf, markerSize, weights, [], [], slice);
 %% -------------------- Zoom to Spot Region --------------------
 % Calculate zoomed window around median spot position (±30 mm margin)
 [xlimVals, ylimVals] = matRad_getZoomWindow(medianCoords(1), medianCoords(2), ct, 30);

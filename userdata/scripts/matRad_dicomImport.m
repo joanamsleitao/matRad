@@ -1,8 +1,8 @@
-function [matRadFileName, ct, cst, pln, stf, resultGUI] = matRadJoana_importDicom(dcmImpObj, pathToFolder)
-% MATRADJOANA_IMPORTDICOM - Imports DICOM files into matRad structures
+function [matRadFileName, ct, cst, pln, stf, resultGUI] = matRad_dicomImport(dcmImpObj, pathToFolder)
+% matRad_dicomLoad - Imports DICOM files into matRad structures
 %
 % Syntax:  [matRadFileName, ct, cst, pln, stf, resultGUI] = ...
-%              matRadJoana_importDicom(dcmImpObj, pathToFolder)
+%              matRad_dicomLoad(dcmImpObj, pathToFolder)
 %
 % Inputs:
 %   dcmImpObj    - DICOM import object (struct)

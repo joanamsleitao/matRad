@@ -1,4 +1,4 @@
-function qi = matRad_calcQIndAdapted(cst, pln, doseCube, refGy, refVol)
+function qi = matRad_calcQIndAdapted(cst, pln, doseCube, refGy, refVol, referenceCI)
 % matRad_calcQIndAdapted - Calculate DVH-based quality indicators
 %
 % Syntax:
@@ -55,6 +55,10 @@ if ~exist('refGy', 'var') || isempty(refGy)
     refGy = floor(linspace(0,max(doseCube(:)),6)*10)/10;
 end
 
+if ~exist('referenceCI', 'var') || isempty(referenceCI)
+    referenceCI = [];
+end
+
 if ~exist('pln', 'var') || isempty(pln)
     numOfFractions = 1;
 else
@@ -76,7 +80,8 @@ for runVoi = 1:size(cst,1)
     if ~isempty(doseInVoi)
         
         qi(runVoi).name = cst{runVoi,2};
-        
+        qi(runVoi).numOfVoxels  = numOfVoxels;
+
         % easy stats
         qi(runVoi).mean = mean(doseInVoi);
         qi(runVoi).std  = std(doseInVoi);
@@ -103,7 +108,7 @@ for runVoi = 1:size(cst,1)
         % voiPrint = sprintf('%s\n%27s',voiPrint,' ');
 
         % if current voi is a target -> calculate homogeneity and conformity
-        if strcmp(cst{runVoi,3},'TARGET') > 0      
+        if strcmp(cst{runVoi,3},'TARGET') > 0  &&  size(cst(runVoi,:),2) > 5   
 
             % loop over target objectives and get the lowest dose objective 
             referenceDose = inf;
@@ -132,6 +137,20 @@ for runVoi = 1:size(cst,1)
 
             if referenceDose == inf 
                 voiPrint = sprintf('%s%s',voiPrint,'Warning: target has no objective that penalizes underdosage, ');
+            elseif ~isempty(referenceCI) 
+                StringReferenceCI = regexprep(num2str(round(referenceCI*100)/100),'\D','_');
+                referenceDose = referenceCI;
+                VTarget95 = sum(doseInVoi >= 0.95*referenceCI); % number of target voxels recieving dose >= 0.95 dPres
+                VTreated95 = sum(doseCube(:) >= 0.95*referenceCI);  %number of all voxels recieving dose >= 0.95 dPres ("treated volume")
+                qi(runVoi).(['VTarget95_' StringReferenceCI 'Gy' ]) = VTarget95;
+                qi(runVoi).(['VTreated95_' StringReferenceCI 'Gy' ]) = VTreated95;
+
+                qi(runVoi).(['CI_' StringReferenceCI 'Gy']) = VTarget95^2/(numOfVoxels * VTreated95); 
+
+                % Homogeneity Index (one out of many), fieldname contains reference dose        
+                qi(runVoi).(['HI_' StringReferenceCI 'Gy']) = (DX(5) - DX(95))/referenceCI * 100;
+                qi(runVoi).(['HI_V50']) = (DX(5) - DX(95))/DX(50) * 100;
+
             else
  
                 StringReferenceDose = regexprep(num2str(round(referenceDose*100)/100),'\D','_');
