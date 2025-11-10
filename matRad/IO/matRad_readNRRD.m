@@ -139,6 +139,9 @@ end
 %Here we need either spacings ore space directions
 spacingFieldIx = find(ismember(nrrdMetaData.fields(:,1), 'spacings'));
 spaceDirFieldIx = find(ismember(nrrdMetaData.fields(:,1), 'space directions'));
+dimensionFieldIx = find(ismember(nrrdMetaData.fields(:,1), 'dimension'));
+dim =  textscan(nrrdMetaData.fields{dimensionFieldIx,2},'%f');
+dim = dim{1};
 if ~isempty(spacingFieldIx)
     resolutions = textscan(nrrdMetaData.fields{spacingFieldIx,2},'%f');
     if numel(resolutions{1}) ~= metadata.dimension
@@ -150,7 +153,7 @@ if ~isempty(spacingFieldIx)
     %default order 2 1 3)
     metadata.axisPermutation = [1 2 3];
     
-elseif ~isempty(spaceDirFieldIx)
+elseif ~isempty(spaceDirFieldIx) && dim == 3
     %space directions are written in vector format
     %first create the scanning string
     vectorstring = '(';
@@ -174,7 +177,32 @@ elseif ~isempty(spaceDirFieldIx)
         metadata.axisPermutation(c) = currentAxis*sign(vectors{c}(currentAxis));
         metadata.resolution(c) = vectors{c}(currentAxis);       
     end
-   
+elseif ~isempty(spaceDirFieldIx) && dim == 4
+        vectorstring = '(';
+        for c=1:metadata.dimension
+            vectorstring = [vectorstring '%f,'];
+        end
+        vectorstring(end) = ')';
+        %Get the vectors
+        % Extract all parenthesis groups with numbers
+        tokens = regexp(nrrdMetaData.fields{spaceDirFieldIx,2}, '\(([^)]*)\)', 'tokens');
+
+        % Convert each token string to numeric vector
+        vectors = cellfun(@(t) str2num(t{1})', tokens, 'UniformOutput', false);
+
+        % vectors = textscan(nrrdMetaData.fields{spaceDirFieldIx,2},vectorstring);
+
+        for c=1:metadata.dimension-1
+            %check if cartesian basis vector
+            currentAxis = find(vectors{c});
+
+            if numel(find(vectors{c})) ~= 1
+                matRad_cfg.dispError('Sorry! We currently only support spaces with cartesian basis!');
+            end
+            metadata.axisPermutation(c) = currentAxis*sign(vectors{c}(currentAxis));
+            metadata.resolution(c) = vectors{c}(currentAxis);
+        end
+     
 else
     matRad_cfg.dispWarning('No Resolution Information available');
 end
@@ -184,11 +212,11 @@ originFieldIx = find(ismember(nrrdMetaData.fields(:,1), 'space origin'));
 if ~isempty(originFieldIx)
     %first create the scanning string
     vectorstring = '(';
-    for c=1:metadata.dimension
+    for c=1:3% metadata.dimension
         vectorstring = [vectorstring '%f,'];
     end
     originVector = textscan(nrrdMetaData.fields{originFieldIx,2},vectorstring);
-    for c=1:metadata.dimension
+    for c=1:3 % metadata.dimension
         metadata.imageOrigin(c) = originVector{c};
     end
     %metadata.imageOrigin = transpose(metadata.imageOrigin);
@@ -238,7 +266,7 @@ if isempty(encodingFieldIx)
 end
 switch nrrdMetaData.fields{encodingFieldIx,2}
     case 'raw'
-        cube = fread(hFile,prod(metadata.cubeDim), metadata.datatype);
+        cube = fread(hFile,prod(metadata.cubeDim(end-2:end)), metadata.datatype);
     case {'txt','text','ascii'}
         cube = cast(fscanf(hFile,'%f'),metadata.datatype);
     case 'hex'
@@ -302,6 +330,8 @@ end
 
 if numel(metadata.cubeDim) > 1
     
+
+    if metadata.dimension == 3
     %first we shape the data into a cube
     cube = reshape(cube,metadata.cubeDim);
     
@@ -311,9 +341,27 @@ if numel(metadata.cubeDim) > 1
     permutationTransformMatrix = diag(ones(metadata.dimension,1));
     permutationTransformMatrix(1:2,1:2) = flip(permutationTransformMatrix(1:2,1:2));
     
-    applyPermutation = permutationTransformMatrix*metadata.axisPermutation';
+    applyPermutation = permutationTransformMatrix*abs(metadata.axisPermutation)';
+   cube = permute(cube,applyPermutation);
+    % cube = permute(cube, [2 1 3]');
+
+    % applyPermutation = abs(applyPermutation); % change by Joana
+    elseif metadata.dimension == 4
+        cubeDim = metadata.cubeDim(end-2:end);
+
+%first we shape the data into a cube
+    cube = reshape(cube, cubeDim);
     
-    cube = permute(cube,applyPermutation);
+    %now we have to do the permutations, 2 1 3 ... is the MATLAB default
+    %We create a transform matrix that transforms a permutation to MATLAB
+    %default
+    permutationTransformMatrix = diag(ones(size(cubeDim, 2),1));
+    permutationTransformMatrix(1:2,1:2) = flip(permutationTransformMatrix(1:2,1:2));
+    
+    applyPermutation = permutationTransformMatrix*metadata.axisPermutation';
+   cube = permute(cube,applyPermutation);
+    % cube = permute(cube, [2 1 3]');
+    end
 end
 
 

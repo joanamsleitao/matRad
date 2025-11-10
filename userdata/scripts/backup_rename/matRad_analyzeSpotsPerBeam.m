@@ -1,0 +1,1 @@
+function [doseHeavy, stats] = matRad_analyzeSpotsPerBeam(iBeam, ct, cst)

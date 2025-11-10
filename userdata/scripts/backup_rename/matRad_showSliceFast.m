@@ -2,7 +2,7 @@ function [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, ...
     doseWindow, boolPlotLegend, levelZoom, isoDoseLevels)
 % MATRAD_SHOWSLICEFAST - Quickly displays CT slice with dose overlay
 %
-% Syntax:  [slice, hleg] = matRad_showSliceF(ct, cst, doseCube, slice, doseWindow)
+% Syntax:  [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, doseWindow)
 %
 % Inputs:
 %   ct          - CT structure (struct)
