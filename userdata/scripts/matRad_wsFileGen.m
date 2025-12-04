@@ -1,4 +1,4 @@
-function [fileNameComplete, fileFolder, fileName] = matRad_fileGen(fileFolder, pln, workspaceType)
+function [fileNameComplete, fileFolder, fileName] = matRad_wsFileGen(fileFolder, pln, workspaceType)
 % matRad_fileGen - Generate consistent file names for matRad workspaces
 %
 % Syntax:  [fileNameComplete, fileFolder, fileName] = ...

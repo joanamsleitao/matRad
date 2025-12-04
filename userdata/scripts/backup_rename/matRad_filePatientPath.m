@@ -36,9 +36,9 @@ matches(ismember({matches.name},{'.','..'})) = [];
 
 if isempty(matches)
     error('Patient folder for "%s" not found in current directory tree.', patientID);
-% elseif numel(matches) > 1
-%     warning('Multiple patient folders found for "%s". Using first: %s', ...
-%         patientID, fullfile(matches(1).folder, matches(1).name));
+    % elseif numel(matches) > 1
+    %     warning('Multiple patient folders found for "%s". Using first: %s', ...
+    %         patientID, fullfile(matches(1).folder, matches(1).name));
 end
 
 patientFolder = fullfile(matches(1).folder);
@@ -48,17 +48,24 @@ targetName = [];
 %% --- Case 1: Only patientID ---
 if nargin == 1
     rtFiles = dir(fullfile(patientFolder, '**', '*RTFiles*'));
-    rtFiles = rtFiles([rtFiles.isdir]);
+    if sum([rtFiles.isdir]) < 1 && ~isempty([rtFiles.name])
+        targetPath = fullfile(rtFiles(1).folder, rtFiles(1).name);
+        targetName = rtFiles(1).name;
+        return;
+    else
 
-    if isempty(rtFiles)
-        error('No RTFiles folder found for patient "%s".', patientID);
-    elseif numel(rtFiles) > 1
-        warning('Multiple RTFiles folders found, using first: %s', rtFiles(1).name);
+        rtFiles = rtFiles([rtFiles.isdir]);
+
+        if isempty(rtFiles)
+            error('No RTFiles folder found for patient "%s".', patientID);
+        elseif numel(rtFiles) > 1
+            warning('Multiple RTFiles folders found, using first: %s', rtFiles(1).name);
+        end
+
+        targetPath = fullfile(rtFiles(1).folder, rtFiles(1).name);
+        targetName = rtFiles(1).name;
+        return;
     end
-
-    targetPath = fullfile(rtFiles(1).folder, rtFiles(1).name);
-    targetName = rtFiles(1).name;
-    return;
 end
 
 %% --- Case 2: Patient + searchFolder (subfolder) ---

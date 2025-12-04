@@ -93,14 +93,14 @@ if boolPlotLegend == 1
 end
 
 % Zoom
-% if ~isempty(levelZoom)
-%     [xlimVals, ylimVals] = matRad_getZoomWindow(isoCenterIx(2), isoCenterIx(1), ct, levelZoom);
-%     if xlimVals(1) ~= xlimVals(2) && ylimVals(1) ~= ylimVals(2)
-%         set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
-%     else
-%         xlimVals = [xlimVals(1)-30, xlimVals(2)+30];
-%         ylimVals = [ylimVals(1)-30, ylimVals(2)+30];
-%         set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
-%     end
-% end
+if ~isempty(levelZoom)
+    [xlimVals, ylimVals] = matRad_getZoomWindow(isoCenterIx(2), isoCenterIx(1), ct, levelZoom);
+    if xlimVals(1) ~= xlimVals(2) && ylimVals(1) ~= ylimVals(2)
+        set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
+    else
+        xlimVals = [xlimVals(1)-30, xlimVals(2)+30];
+        ylimVals = [ylimVals(1)-30, ylimVals(2)+30];
+        set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
+    end
+end
 end

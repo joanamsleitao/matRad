@@ -1,145 +1,49 @@
-function [doseCubeMod, maskStruct, cstOut] = matRad_flashPipeline( ...
-    cst, doseCube, DMF, voiSelection, doseThreshold, outputTxtFile, ...
-    includeHealthyTissue, returnMasks, applyMode)
-% matRad_flashPipeline - Apply FLASH Dose Modifying Factor (DMF)
-%                             to dose voxels above a dose threshold.
-%
-% DESCRIPTION:
-%   This function implements a complete FLASH dose-modification pipeline.
-%   It applies a Dose Modifying Factor (DMF) to specific regions in the dose
-%   cube (either OARs, healthy tissue, or both) for voxels receiving a dose
-%   above a given threshold.
-%
-%   It optionally generates new CST entries for healthy tissue regions and
-%   can return or save binary masks indicating where FLASH effects were applied.
-%
-%   Three operational modes are supported:
-%
-%       'OAR'      – apply DMF only to selected VOIs (typically OARs)
-%       'Healthy'  – apply DMF to all non-target healthy tissue voxels above threshold
-%       'Combined' – apply DMF to both OARs and healthy tissue voxels
-%
-% SYNTAX:
-%   [doseCubeMod, maskStruct, cstOut] = matRad_flashPipeline( ...
-%       cst, doseCube, DMF, voiSelection, doseThreshold)
-%
-%   [doseCubeMod, maskStruct, cstOut] = matRad_flashPipeline( ...
-%       cst, doseCube, DMF, voiSelection, doseThreshold, outputTxtFile, ...
-%       includeHealthyTissue, returnMasks, applyMode)
+function [doseCubeModified, cstModified, flashMask, logFileName, ...
+    hFigSlicesCenter, hFigSlicesMaxDiff, hFigDVH] = ...
+    matRad_flashPipeline(ct, cst, doseCube, doseThreshold, DMF, voiSelection, includeHealthyTissues)
+% MATRAD_FLASHPIPELINE - Full FLASH dose modification and visualization pipeline
 %
 % INPUTS:
-%   cst                - matRad structure
-%   doseCube           - 3D dose matrix
-%   DMF                - scalar dose modifying factor (e.g. 0.85)
-%   voiSelection       - cell array of VOI names to apply DMF (for 'OAR' mode)
-%   doseThreshold      - dose threshold (Gy) for FLASH activation
-%   outputTxtFile      - optional text file to log results
-%   includeHealthyTissue - logical; if true, add HealthyTissue VOIs to CST
-%   returnMasks        - logical; if true, return masks only (no dose modification)
-%   applyMode          - string, one of:
-%                        'OAR' | 'Healthy' | 'Combined' (default = 'OAR')
+%   cst                  - matRad CST cell array
+%   doseCube             - 3D dose cube [Gy]
+%   doseThreshold        - dose threshold for FLASH modification [Gy]
+%   DMF                  - dose modifying factor
+%   voiSelection         - cell array of VOI names or indices to include
+%   includeHealthyTissues- boolean, include non-target tissues (default: false)
 %
 % OUTPUTS:
-%   doseCubeMod - modified dose cube (if returnMasks = false)
-%   maskStruct  - struct with logical masks used for modification:
-%                   .doseAboveThr   – OARs above threshold
-%                   .healthyMask    – all healthy voxels (non-targets)
-%                   .healthyAboveThr – healthy voxels above threshold
-%   cstOut      - updated CST (with optional new healthy tissue VOIs)
-%
-% -------------------------------------------------------------------------
-% EXAMPLES:
-%
-% 1) Standard OAR-only FLASH:
-%       doseOAR = matRad_flashPipeline(cst, doseCube, 0.85, ...
-%                 {'Heart','L Lung'}, 10);
-%
-% 2) Healthy tissue FLASH:
-%       [doseHealthy, masks, cstNew] = matRad_flashPipeline( ...
-%           cst, doseCube, 0.85, {'Heart'}, 10, 'flash_healthy.txt', ...
-%           true, false, 'Healthy');
-%
-% 3) Combined OAR + healthy tissue FLASH:
-%       [doseCombined, masks, cstNew] = matRad_flashPipeline( ...
-%           cst, doseCube, 0.85, {'Heart','L Lung'}, 10, ...
-%           'flash_combined.txt', true, false, 'Combined');
-%
-% 4) Masks-only mode (no dose modification):
-%       [~, masks] = matRad_flashPipeline(cst, doseCube, 0.85, ...
-%           {'L Lung'}, 10, [], true, true, 'Combined');
-%       imshow3D(masks.healthyAboveThr);
-%
-% -------------------------------------------------------------------------
-% AUTHORSHIP:
-%   Joana Leitão + GPT-5 (2025)
-% -------------------------------------------------------------------------
+%   doseCubeModified     - modified dose cube
+%   cstModified          - modified CST
+%   flashMask            - logical mask of modified voxels
+%   logFileName          - name of log output (optional)
+%   hFigSlicesCenter     - figure handle for axial center slice comparison
+%   hFigSlicesMaxDiff    - figure handle for axial slice max difference
+%   hFigDVH              - figure handle for DVH comparison
 
-if nargin < 9, applyMode = 'OAR'; end
-if nargin < 8, returnMasks = false; end
-if nargin < 7, includeHealthyTissue = false; end
-if nargin < 6, outputTxtFile = []; end
+%% Defaults
+if ~exist('includeHealthyTissues','var'), includeHealthyTissues = false; end
+if ~exist('voiSelection','var'), voiSelection = []; end
 
-applyMode = lower(applyMode);
+%% 1) Identify FLASH voxels
+[flashMask, flashOARmask, cstExtraLines] = ...
+    matRad_flashVoxels(cst, doseCube, doseThreshold, voiSelection, includeHealthyTissues);
 
-% Step 0: Optionally identify healthy tissue regions
-cstOut = cst;
-healthyMask = [];
-healthyAboveThrMask = [];
+% Update CST
+cstModified = [cst; cstExtraLines];
 
-if includeHealthyTissue
-    [cstOut, healthyMask, healthyAboveThrMask] = ...
-        matRad_VOIIrradiatedHealthyTissue(cst, doseCube, doseThreshold, false);
-end
+%% 2) Apply DMF to FLASH voxels
+doseCubeModified = matRad_flashApplyDMF(doseCube, flashMask, DMF);
 
-% Step 1: Identify OAR voxels above threshold
-doseAboveThrMask = matRad_VOIDoseThrMask(cstOut, doseCube, voiSelection, doseThreshold, true);
+%% 3) Log
+logFileName = matRad_flashLog(cstModified, DMF, doseThreshold, flashMask);
 
-% Store masks
-maskStruct = struct( ...
-    'doseAboveThr', doseAboveThrMask, ...
-    'healthyMask', healthyMask, ...
-    'healthyAboveThr', healthyAboveThrMask ...
-);
+%% 4) Slice & DVH visualization
+zoom = 0.5;
 
-% Step 2: Combine masks based on mode
-switch applyMode
-    case 'oar'
-        finalMask = doseAboveThrMask;
-        targetName = 'Selected OARs';
+[hFigSlicesCenter, hFigSlicesMaxDiff, hFigDVH] = ...
+    matRad_compareTwoDoses(doseCube, doseCubeModified, ct, cstModified, zoom);
 
-    case 'healthy'
-        if isempty(healthyAboveThrMask)
-            warning('Healthy tissue masks not available — includeHealthyTissue must be true.');
-            finalMask = false(size(doseCube));
-        else
-            finalMask = healthyAboveThrMask;
-        end
-        targetName = 'Healthy tissue voxels above threshold';
+%% Done
+fprintf('FLASH pipeline complete.\nModified voxels: %d\n', nnz(flashMask));
 
-    case 'combined'
-        finalMask = doseAboveThrMask | healthyAboveThrMask;
-        targetName = 'OARs + Healthy tissue voxels above threshold';
-
-    otherwise
-        error('Invalid applyMode. Choose "OAR", "Healthy", or "Combined".');
-end
-
-% Step 3: Either apply DMF or just return masks
-if returnMasks
-    doseCubeMod = [];
-    fprintf('Returning FLASH masks only (dose not modified).\n');
-else
-    fprintf('--- Applying FLASH DMF (Mode: %s) ---\n', upper(applyMode));
-    doseCubeMod = doseCube;
-    doseCubeMod(finalMask) = doseCube(finalMask) .* DMF;
-    fprintf('  DMF %.3f applied to %d voxels (%s)\n', DMF, nnz(finalMask), targetName);
-
-    if ~isempty(outputTxtFile)
-        fid = fopen(outputTxtFile, 'a');
-        fprintf(fid, 'Mode: %s | DMF: %.3f | Threshold: %.1f Gy | Voxels modified: %d\n', ...
-            upper(applyMode), DMF, doseThreshold, nnz(finalMask));
-        fclose(fid);
-    end
-    fprintf('--- Done ---\n');
-end
 end
