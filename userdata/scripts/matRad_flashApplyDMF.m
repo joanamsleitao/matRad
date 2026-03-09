@@ -24,6 +24,10 @@ if nargin < 3 || isempty(DMF)
     DMF = 0.75;
 end
 
+if DMF > 1
+    DMF = 1/DMF;
+end
+
 % Copy original doseCube
 doseCubeMod = doseCube;
 

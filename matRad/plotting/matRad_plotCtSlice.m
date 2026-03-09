@@ -46,7 +46,7 @@ matRad_cfg = MatRad_Config.instance();
 
 %Use default colormap?
 if nargin < 6 || isempty(cMap)
-    cMap = bone(64);
+    cMap = gray(64);
 end
 
 if nargin < 7 || isempty(window)

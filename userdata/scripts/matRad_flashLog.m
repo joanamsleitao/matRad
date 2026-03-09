@@ -51,8 +51,11 @@ end
 
 % Generate suggested log filename (optional output)
 if nargout > 0
-    dtStr = datestr(now,'dd-mm-yyyy_HHMM');
-    logFileName = sprintf('flash_DMF%.2f_from%.1f_%s.txt', DMF, doseThreshold, dtStr);
+    dtStr = datestr(now,'_dd-mm-yyyy_HHMM');
+
+    logFileName = sprintf('FLASHLogFile_%s_threshold%sGy_DMF%s%s.mat', ...
+    patientID, transfDots(doseThreshold), transfDots(dmfValue), dtStr);
+
 end
 
 end

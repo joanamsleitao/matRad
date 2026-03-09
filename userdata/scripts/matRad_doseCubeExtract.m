@@ -1,4 +1,4 @@
-function doseCube = matRad_doseCubeExtract(resultGUI)
+function [doseCube, type] = matRad_doseCubeExtract(resultGUI)
 % matRad_doseCubeExtract - Extract dose cube from resultGUI
 %
 % Syntax:
@@ -22,8 +22,10 @@ end
 
 if isfield(resultGUI, 'physicalDose')
     doseCube = resultGUI.physicalDose;
+    type = 'physicalDose';
 elseif isfield(resultGUI, 'RBExDose')
     doseCube = resultGUI.RBExDose;
+    type = 'RBExDose';
 else
     warning('No dose cube found in resultGUI.');
 end

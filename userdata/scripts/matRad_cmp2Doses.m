@@ -175,8 +175,8 @@ else
 end
 
 %% 6) Compute quality indicators for reference and test (D_2, D_50, D_95)
-qiRef  = matRad_calcQIndAdapted(cst(voisIdx,:), [], doseRef, [], []);
-qiTest = matRad_calcQIndAdapted(cst(voisIdx,:), [], doseTest, [], []);
+qiRef  = matRad_calcQI(cst(voisIdx,:), [], doseRef, [], []);
+qiTest = matRad_calcQI(cst(voisIdx,:), [], doseTest, [], []);
 
 % Build table data
 nVOI = numel(voisIdx);
@@ -293,14 +293,9 @@ if ~isnan(ciVal)
 end
 
 % Save figure
-% timestamp = datestr(now,'yyyymmdd_HHMMSS');
-% outName = fullfile(outFolder, sprintf('%s_%s.png', opts.filePrefix, timestamp));
-% try
-    % export_fig(outName,'-png','-r150'); %#ok<TRYNC> % if export_fig available
-% catch
-    % % fallback to print
-    % print(fig, outName, '-dpng', ['-r' num2str(opts.dpi)]);
-% end
+timestamp = datestr(now,'yyyymmdd_HHMMSS');
+outName = fullfile(outFolder, sprintf('%s_%s.png', opts.filePrefix, timestamp));
+print(fig, outName, '-dpng', ['-r' num2str(opts.dpi)]);
 
 fprintf('Saved comparison figure to: %s\n', outName);
 

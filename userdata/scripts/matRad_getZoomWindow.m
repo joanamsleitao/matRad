@@ -29,4 +29,12 @@ ymax = min(rows, round(yCenter + zoomWidth));
 
 xlimVals = [xmin, xmax];
 ylimVals = [ymin, ymax];
+
+    % if xlimVals(1) ~= xlimVals(2) && ylimVals(1) ~= ylimVals(2)
+    %     set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
+    % else
+    %     xlimVals = [xlimVals(1)-30, xlimVals(2)+30];
+    %     ylimVals = [ylimVals(1)-30, ylimVals(2)+30];
+    %     set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
+    % end
 end

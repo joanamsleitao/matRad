@@ -116,7 +116,7 @@ end
 %% --- Case 4: Patient + [] + searchFile ---
 if nargin == 3 && isempty(searchFolder)
     % Search for searchFile in the patientFolder recursively
-    f = dir(fullfile(patientFolder, '**', searchFile));
+    f = dir(fullfile(patientFolder, ['*', searchFile, '*']));
     if isempty(f)
         error('File "%s" not found under patient folder "%s".', searchFile, patientFolder);
     elseif numel(f) > 1

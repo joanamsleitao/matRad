@@ -35,6 +35,9 @@ addParameter(p, 'searchDir', pwd);
 parse(p, varargin{:});
 opts = p.Results;
 
+dirpwc = opts.searchDir;
+% opts.searchDir = fullfile(dirpwc, 'Data', patientName);
+
 fprintf('\n=== matRad MAT File Load ===\n');
 fprintf('Patient: %s\n', patientName);
 fprintf('Plan: %s\n', matchString);
@@ -74,7 +77,7 @@ if ~isempty(matFiles)
 end
 
 %% Search Strategy 3: Separate CT/CST + doseCube files
-ctCstPattern = sprintf('ct_cst_%s.mat', patientName);
+ctCstPattern = sprintf('ct_cst_%s*.mat', patientName);
 ctCstFiles = dir(fullfile(opts.searchDir, ctCstPattern));
 
 dosePattern = sprintf('doseCube_%s_%s.mat', patientName, matchString);

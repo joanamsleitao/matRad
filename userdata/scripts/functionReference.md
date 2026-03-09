@@ -19,11 +19,11 @@ This document summarizes all MATLAB functions developed, grouped by category. Ea
 
 | Previous Name | Current Name | Description | Call | Status |
 | --- | --- | --- | --- | --- |
+| –  | matRad_dataImpWrap | High-level wrapper: for given patient, path, and plan, load from MAT if present, otherwise import from DICOM using `matRad_dicomImpDose` | `[ct, cst, doseCube, resultGUI] = matRad_dataImpWrap(patientName, inputPath, planName, 'fallbackPath', fbPath, 'saveDir', outDir)` | 🟢 |
+| –  | matRad_dicomImpDose | Import CT, RTSTRUCT and one or multiple RTDOSE series; saves `matRadPatient_<pat>_<plan>.mat` or split `ct_cst_<pat>.mat` + `doseCube_<pat>_<plan>.mat` | `matRad_dicomImpDose(patientName, dicomPath, {'PlanA','PlanB'}, 'fallbackPath', path, 'saveDir', outDir)` | 🟢 |
+| –  | matRad_matLoad | Load CT, CST, doseCube, resultGUI by patient/plan from MAT (exact or wildcard search, supports split CT/CST + dose files) | `[ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, planName, 'searchDir', folder)` | 🟢 |
 | -  | matRad_matLoadDirect | Load variables selectively from MAT file by path | `[ct, cst, pln, stf, resultGUI] = matRad_matLoadDirect(filePath)` | 🟢 |
-| –                  | matRad_findPatientMats | Find all MAT files for a patient, optionally filtered by plan/beam string | `matFiles = matRad_findPatientMats('SP03', 'PassivePlusArc', 'searchDir', dir)` | 🟢 |
-| –                  | matRad_dicomImpDose | Import CT, RTSTRUCT and one or multiple RTDOSE series; saves `matRadPatient_<pat>_<plan>.mat` or split `ct_cst_<pat>.mat` + `doseCube_<pat>_<plan>.mat` | `matRad_dicomImpDose(patientName, dicomPath, {'PlanA','PlanB'}, 'fallbackPath', path, 'saveDir', outDir)` | 🟢 |
-| –                  | matRad_matLoad | Load CT, CST, doseCube, resultGUI by patient/plan from MAT (exact or wildcard search, supports split CT/CST + dose files) | `[ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, planName, 'searchDir', folder)` | 🟢 |
-| –                  | matRad_dataImpWrap | High-level wrapper: for given patient, path, and plan, load from MAT if present, otherwise import from DICOM using `matRad_dicomImpDose` | `[ct, cst, doseCube, resultGUI] = matRad_dataImpWrap(patientName, inputPath, planName, 'fallbackPath', fbPath, 'saveDir', outDir)` | 🟢 |
+| –  | matRad_findPatientMats | Find all MAT files for a patient, optionally filtered by plan/beam string | `matFiles = matRad_findPatientMats('SP03', 'PassivePlusArc', 'searchDir', dir)` | 🟢 |
 | | | *Workspace Based* | |
 | matRad_filenameGenerate | matRad_wsFileGen | Generate standardized workspace filenames from plan gantry spacing and dose grid resolution (e.g. `Base_plnstfdijGantry10Res222_2025-01-05_1430.mat`) | `[filePath, fileFolder, fileName] = matRad_fileGen(fileFolder, pln, workspaceType)` | 🟢 |
 | matRad_fileGet | matRad_wsFileFind | Find simulation/workspace MAT files by gantry spacing and dose grid resolution (e.g. `Base_plnstfdijGantry10Res222_*.mat`) | `[filePath, fileFolder, fileName, allMatches] = matRad_fileGet(folder, gantrySep, [dx dy dz], workspaceType)` | 🟢 |
@@ -55,12 +55,13 @@ Key rule:
 | matRad_cstPrint | matRad_cstPrint | Print objectives | `matRad_cstPrint(cst)` | 🟡 |
 | matRad_setupCST | matRad_cstSetup | Initialize CST | `[cst, presDose, ixPTV, ixExt] = matRad_cstSetup(cst, VOINames, VOISites, mode)` | 🟡 |
 | matRad_VOIcompare | matRad_VOIcmp | Compare VOIs between plans | `[report, relDiffs] = matRad_VOIcmp(cst, qi, qiRef, {'D_2','mean'})` | 🟢 |
-| matRad_VOICreateRings | matRad_VOICreateRings | Create ring structures | `cstOut = matRad_VOICreateRings(ct, cst, voiName, marginMm, nRings)` | 🟡 |
+| matRad_VOICreateRings | matRad_VOICreateRings | Create ring structures | `cstOut = matRad_VOICreateRings(ct, cst, ring_mm, ixRefVOI, marginPTVRing_mm, visualize)` | 🟡 |
 | matRad_VOIDoseThreshold | matRad_VOIDoseThr | Filter VOIs by dose threshold | `cstFilt = matRad_VOIDoseThr(cst, doseCube, 10, 'above', 'voxels.txt')` | 🟢 |
 | matRad_VOIDoseThresholdMask | matRad_VOIDoseThrMask | Mask voxels above threshold | `mask = matRad_VOIDoseThrMask(cst, doseCube, {'L Lung'}, 10)` | 🟢 |
 | matRad_VOIfilterDoseThreshold | matRad_VOIFilterDoseThr | Legacy function for thresholding | `cstFilt = matRad_VOIFilterDoseThr(cst, doseCube, 10, 'below')` | 🟡 |
 | matRad_VOIfindIndex | matRad_VOIFindIx | Find VOI index | `ixVOI = matRad_VOIFindIx(cst, aliases)` | 🟡 |
 | matRad_VOIIrradiatedHealthyTissue | matRad_VOIHealthy | Define healthy tissue VOIs above threshold | `[mask, cst, maskThr] = matRad_VOIHealthy(cst, doseCube, 10, false)` | 🟢 |
+| `N/A` | `matRad_VOIHealthy` | Create VOIs for irradiated healthy tissue with island-size filtering | `[healthyMask, cstNew, healthyAboveThrMask] = matRad_VOIHealthy(cst, doseCube, doseThreshold, includeTargets, minIslandVox)` | 🟢 |
 | matRad_VOIOperations | matRad_VOIOps | Combine VOIs via set operations | `[cst, newIx] = matRad_VOIOps(cst, ix1, ix2, operation, newName)` | 🟢 |
 | matRad_OARFindIx | matRad_VOIOARFindIx | Finds all indexes of OARs | `ixOARs = matRad_VOIOARFindIx(cst)`  | 🟢 |
 || matRad_getVoiMask | Returns a binary mask for a VOI | `mask = matRad_getVoiMask(ct, cst, voiName, slice)` | 🟢 |
@@ -89,7 +90,7 @@ Key rule:
 | matRad_generatePln | matRad_genPln | Create basic matRad plan structure | `pln = matRad_genPln(cst, ct, gantryAngles, doseGridResolution, modality)` | 🟡 |
 | matRad_generateStfOneEL | matRad_genStf1EL | Generate single-layer STF for a beam | `[stf_oneEL, stf_mb, stf_sb] = matRad_genStf1EL(ct, cst, pln)` | 🟡 |
 | matRad_generateStfSSingle... | matRad_genStfELB2 | Generate STF with single EL per beam | `[stf1EL, mb, sb] = matRad_genStfELB(ct, cst, pln)` | 🟡 |
-| matRad_getMachineEnergyC... | matRad_machineColorMap | Build machine-specific EL → RGB mapping for plotting | `cmap = matRad_machColorMap(stf)` | 🟡 |
+| `matRad_getMachineE...` | `matRad_machineColorMap` | Build machine-specific EL → RGB mapping for plotting | `cmap = matRad_machineColorMap(stf)` | 🟡 |
 | matRad_showSpotsInSlice | matRad_showSpots | Overlay all proton spot positions on dose slice | `matRad_showSpots(ct, cst, stf, doseCube, weights)` | 🟡 |
 
 -----
@@ -117,7 +118,7 @@ Key rule:
 | :--- | :--- | :--- | :--- | :--- |
 | matRad_plotCTSlice | matRad_plotCT | Plot CT slice | `matRad_plotCT(ct, slice)` | 🟡 |
 | matRad_plotEnergyLayerHistogram | matRad_plotELhist | Plot number of spots per EL | `matRad_plotELhist(ax, stf)` | 🟡 |
-| matRad_plotSpotsSlice | matRad_plotSpotsSlice | Plot all spots in a CT slice | `matRad_plotSpotsSlice(ct, stf, slice)` | 🟡 |
+| matRad_plotSpotsSlice | matRad_plotSpotsSlice | Plot all spots in a CT slice | `matRad_plotSpotsSlice(ax, ct, stf, markerSize, weights, showRayTracing, useGeoSpots, sliceIdx)` | 🟢 |
 | matRad_showDVHAdapted | matRad_showDVH | Show adapted DVH | `matRad_showDVH(cst, doseCube)` | 🟡 |
 | matRad_showMultiDVH | matRad_showMultiDVH | Plot multiple DVHs from multiple sources | `matRad_showMultiDVH(dvhResults, cst)` | 🟡 |
 | matRad_showSliceAndDVH | matRad_showSliceDVH | Display dose slice and DVH side-by-side | `[hleg, dvh] = matRad_showSliceDVH(ct, cst, doseCube)` | 🟡 |
@@ -138,7 +139,7 @@ Key rule:
 | matRad_energyLayer_perVOIDose | matRad_dosePerVOI | Compute per-VOI dose per EL | `[voiDoseByEL, qiByEL] = matRad_dosePerVOI(cst, allELStruct, dij, w, refGy, refVol)` | 🟢 |
 | matRad_EnergyLayerAnalysis | matRad_ELAnalysis | High-level pipeline: weight layers, compute per-EL dose, attach rays, per-VOI metrics, visualize | `[voiDoseByEL, qiByEL, topEL] = matRad_ELAnalysis(cst,stf,dij,ct,resultGUI,ixTarget,ixOAR)` | 🟢 |
 | matRad_generateStfSSingleEn... | matRad_genStfELB | Simplify STF to single EL per spot | `[stf1EL, mb, sb] = matRad_genStfELB(ct, cst, pln)` | 🟡 |
-| matRad_getMachineE... | matRad_machineColorMap | Build machine-specific EL → RGB mapping for plotting | `cmap = matRad_machColorMap(stf)` | 🟡 |
+
 | matRad_ELayerMergeSimilar | matRad_mergeEL | Merge adjacent/nearby energy layers into representative center layers | `merged = matRad_mergeEL(topEL, mergeRange, mergeTol)` | 🟢 |
 | matRad_energyLayer_plotDosePerEL | matRad_plotDoseEL | Grid figure of per-EL doses with spots overlay | `t = matRad_plotDoseEL(ct,cst,stf,topELStruct,qiByEL,targetName)` | 🟢 |
 | matRad_plotEnergyLayerPerWeight | matRad_plotELW | Plot per-weight energy layer representation | `matRad_plotELwt(ax, stf)` | 🟢 |
@@ -158,6 +159,10 @@ Key rule:
 | matRad_computeSpotStats | matRad_spotsStats | Compute summary spot statistics | `stats = matRad_spotsStats(stf, w)` | 🟡 |
 | matRad_analyzeSpotsPerBeamStats | matRad_spotsStatsBeam | Numeric stats per beam for filtered spots | `[doseHeavy, stats, wHeavy, mask] = matRad_spotsStatsBeam(iBeam,ct,cst,stf,dij,resultGUI,mode,threshold)` | 🟢 |
 | matRad_weightEnergyLayers | matRad_weightEL | Summarize weights per EL, compute dose contribution, identify top layers | `[tSummary, top, all, locs] = matRad_wtEL(cst, stf, dij, w, oarIdx, wThresh)` | 🟢 |
+| `matRad_getTopELStruct` | `matRad_getTopELStruct` | Subset top energy layers struct based on table | `topELStruct_red = matRad_getTopELStruct(voiDoseByEL, topELStruct, N)` | 🟢 |
+| `matRad_getSingleEL` | `matRad_getSingleEL` | Extract single EL dose + metrics structs | `[elDoseStruct, elQiStruct] = matRad_getSingleEL(topELStruct, qiByEL, elName)` | 🟢 |
+| `matRad_optSingleEL` | `matRad_optSingleEL` | Reoptimize a single EL via spot removal | `[doseELOpt, wELOpt, weightsFiltered] = matRad_optSingleEL(dij, cst, pln, wAll, elStruct)` | 🟢 |
+| `matRad_getMachineE...` | `matRad_machineColorMap` | Build machine-specific EL → RGB mapping for plotting | `cmap = matRad_machineColorMap(stf)` | 🟡 |
 
 -----
 
@@ -186,6 +191,7 @@ Key rule:
 | Previous Name | Current Name | Description | Call | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | STAR_getPatientPaths | STAR_getPatientPaths | Helper to locate STAR patient data | `[paths] = STAR_getPatientPaths(baseFolder)` | 🟢 |
+| matRad_getDoseInVOI |
 
 -----
 ## ** A. To be added **

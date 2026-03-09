@@ -42,13 +42,13 @@ else
 end
 
 %% --- Handle PTV ---
-ixPTV = find(contains(cst(:,2), VOINames.PTV.Aliases), 1);
+ixPTV = find(contains(cst(:,2), 'PTV'), 1);
 if isempty(ixPTV)
     warning('PTV not found in CST!');
     prescribedDose = 0;
 else
-    prescribedDose = cst{ixPTV, 6}{1,1}.parameters{1};
-    cst{ixPTV, 5}.visibleColor = VOINames.PTV.Color;
+    % prescribedDose = cst{ixPTV, 6}{1,1}.parameters{1};
+    cst{ixPTV, 5}.visibleColor = [1 0.5000 0];
 end
 
 %% --- Handle Mode (STAR, SPINE, etc.) ---

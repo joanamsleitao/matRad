@@ -1,4 +1,6 @@
-function [flashMask, flashOARmask, cstFLASH] = matRad_flashVoxels(cst, doseCube, doseThreshold, voiSelection, includeHealthy)
+function [flashMask, flashOARmask, cstFLASH] = matRad_flashVoxels( ...
+    cst, doseCube, doseThreshold, voiSelection, includeHealthy, ...
+    minIslandVox3D, minAreaVox2D)
 % matRad_flashVoxels - prepare voxel masks and CST entries for FLASH analysis
 %
 % Syntax:
@@ -49,6 +51,8 @@ if ~iscell(cst) || isempty(cst)
     error('cst must be a non-empty matRad CST cell array.');
 end
 
+if nargin < 6 || isempty(minIslandVox3D), minIslandVox3D = 1; end
+if nargin < 7 || isempty(minAreaVox2D),   minAreaVox2D   = 1; end
 %% --- Find OAR VOIs (all) and apply voiSelection filter if provided
 oarIndicesAll = matRad_VOIOARFindIx(cst);   % expected to return indices of OAR rows in cst
 
@@ -148,8 +152,8 @@ cstFLASH = {}; % will be cell array of one or two rows compatible with cst row s
 if includeHealthy
     % matRad_VOIHealthy returns [cstNew, healthyMask, healthyAboveThrMask] per your provided signature
     try
-        [cstNewTmp, healthyMask, healthyAboveThrMask] = matRad_VOIHealthy(cst, doseCube, doseThreshold, false);
-        % healthyAboveThrMask: logical mask of healthy voxels > threshold (excluding targets)
+[healthyMask, cstNewTmp, healthyAboveThrMask] = matRad_VOIHealthy(cst, doseCube, doseThreshold, false);
+% healthyAboveThrMask: logical mask of healthy voxels > threshold (excluding targets)
         % Merge OAR and healthy above-threshold masks
         flashMask = flashOARmask | healthyAboveThrMask;
     catch ME
@@ -176,6 +180,9 @@ newOAREntry = baseEntry;
 newOAREntry{2} = sprintf('OARsFLASH_{%.1fGy}', doseThreshold);
 newOAREntry{3} = 'OAR';
 newOAREntry{4} = {oarVoxelIdx};
+if numel(newOAREntry) < 5 || isempty(newOAREntry{5})
+    newOAREntry{5} = struct();
+end
 newOAREntry{5}.visibleColor = [1 0.5 0];
 
 cstFLASH = newOAREntry; % start

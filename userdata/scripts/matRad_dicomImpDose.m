@@ -1,4 +1,4 @@
-function matRad_dicomImpDose(patientName, dicomPath, matchStrings, varargin)
+function [ct, cst, pln, resultGUI] = matRad_dicomImpDose(patientName, dicomPath, matchStrings, varargin)
 % matRad_dicomImpDose - Import DICOM CT, RTSTRUCT, and one/multiple RTDOSE
 %
 % Syntax:
@@ -40,6 +40,10 @@ opts = p.Results;
 patientName = char(patientName);
 dicomPath   = char(dicomPath);
 
+if nargin < 3
+    matchStrings = '*';
+end
+
 if ischar(matchStrings) || isstring(matchStrings)
     matchStrings = {char(matchStrings)};
 end
@@ -47,6 +51,11 @@ end
 if isempty(opts.fallbackPath)
     opts.fallbackPath = dicomPath;
 end
+
+ct = [];
+cst = [];
+pln = [];
+resultGUI = [];
 
 fprintf('\n=== matRad DICOM Import (CT/RTSTRUCT/RTDOSE) ===\n');
 fprintf('Patient:    %s\n', patientName);
@@ -87,7 +96,7 @@ cst = dcmImpObj.cst;
 fprintf('✓ CT and RTSTRUCT imported.\n');
 
 %% Step 2: Save CT/CST if multiple doses
-if numel(matchStrings) > 1
+if numel(matchStrings) > 1 || isequal(matchStrings, {char('*')})
     ctCstName = sprintf('ct_cst_%s.mat', patientName);
     ctCstPath = fullfile(opts.saveDir, ctCstName);
     save(ctCstPath, 'ct', 'cst', '-v7');
@@ -113,21 +122,22 @@ for i = 1:numel(matchStrings)
     
     matRad_importDicom(tmpImpObj);
     resultGUI = tmpImpObj.resultGUI;
-    doseCube  = matRad_doseCubeExtract(resultGUI);
+    [doseCube, type]  = matRad_doseCubeExtract(resultGUI);
     
-    if numel(matchStrings) == 1
-        % Single dose: full patient file
-        saveName = sprintf('matRadPatient_%s_%s.mat', patientName, planName);
-        savePath = fullfile(opts.saveDir, saveName);
-        save(savePath, 'ct', 'cst', 'resultGUI', 'doseCube', '-v7');
-        fprintf('✓ Saved patient file: %s\n', saveName);
-    else
-        % Multiple doses: only doseCube
-        saveName = sprintf('doseCube_%s_%s.mat', patientName, planName);
-        savePath = fullfile(opts.saveDir, saveName);
-        save(savePath, 'doseCube', '-v7');
-        fprintf('✓ Saved doseCube file: %s\n', saveName);
-    end
+    % if numel(matchStrings) == 1
+    %     % Single dose: full patient file
+    %     saveName = sprintf('matRadPatient_%s_%s.mat', patientName, planName);
+    %     savePath = fullfile(opts.saveDir, saveName);
+    %     save(savePath, 'ct', 'cst', 'resultGUI', 'doseCube', '-v7');
+    %     fprintf('✓ Saved patient file: %s\n', saveName);
+    % else
+    %     % Multiple doses: only doseCube
+    %     saveName = sprintf('doseCube_%s_%s_%s.mat', ...
+    %         patientName, type, planName);
+    %     savePath = fullfile(opts.saveDir, saveName);
+    %     save(savePath, 'doseCube', '-v7');
+    %     fprintf('✓ Saved doseCube file: %s\n', saveName);
+    % end
 end
 
 fprintf('\n✓ DICOM import complete. %d plan(s) processed.\n', numel(matchStrings));

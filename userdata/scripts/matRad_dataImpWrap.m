@@ -1,4 +1,4 @@
-function [ct, cst, doseCube, resultGUI] = matRad_dataImpWrap(patientName, inputPath, matchString, varargin)
+function [ct, cst, doseCube, resultGUI] = matRad_dataImpWrap(patientName, inputPath, matchStrings, varargin)
 % matRad_dataImpWrap - Wrapper to load from MAT or import from DICOM
 %
 % Syntax:
@@ -46,33 +46,40 @@ fprintf('\n=== matRad Data Import Wrapper ===\n');
 fprintf('Patient: %s\n', patientName);
 fprintf('Input :  %s\n', inputPath);
 
+if nargin < 3
+    matchStrings = '*';
+end
+
+if ischar(matchStrings) || isstring(matchStrings)
+    matchStrings = {char(matchStrings)};
+end
 ct = []; cst = []; doseCube = []; resultGUI = [];
 
 %% Case 1: Direct MAT file
 if isfile(inputPath) && contains(lower(inputPath), '.mat')
     fprintf('→ Detected MAT file. Loading directly.\n');
-    [ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, matchString, ...
+    [ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, matchStrings, ...
                                                     'searchDir', fileparts(inputPath));
     return;
 end
 
 %% Case 2: Multiple plans requested → only DICOM import, no direct outputs
-if iscell(matchString)
+if iscell(matchStrings)
     fprintf('→ Multiple plans requested. Importing from DICOM only.\n');
-    matRad_dicomImpDose(patientName, inputPath, matchString, ...
+    [ct, cst, pln, resultGUI] = matRad_dicomImpDose(patientName, inputPath, matchStrings, ...
                         'fallbackPath', opts.fallbackPath, ...
                         'saveDir', opts.saveDir);
     fprintf('  You can now load each plan with matRad_matLoad.\n');
     return;
 end
 
-matchString = char(matchString);
+matchStrings = char(matchStrings);
 
 %% Case 3: Folder input, single plan
 if isfolder(inputPath)
     % Try to load from existing MAT (in saveDir)
     fprintf('→ Checking for existing MAT in: %s\n', inputPath);
-    [ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, matchString, ...
+    [ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, matchStrings, ...
                                                     'searchDir', inputPath);
     if ~isempty(ct) || ~isempty(doseCube)
         fprintf('✓ Loaded from existing MAT file.\n');
@@ -81,11 +88,11 @@ if isfolder(inputPath)
     
     % No MAT found → import from DICOM then load
     fprintf('→ No MAT found. Importing from DICOM folder: %s\n', inputPath);
-    matRad_dicomImpDose(patientName, inputPath, matchString, ...
+    matRad_dicomImpDose(patientName, inputPath, matchStrings, ...
                         'fallbackPath', opts.fallbackPath, ...
                         'saveDir', opts.saveDir);
     
-    [ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, matchString, ...
+    [ct, cst, doseCube, resultGUI] = matRad_matLoad(patientName, matchStrings, ...
                                                     'searchDir', opts.saveDir);
     return;
 end

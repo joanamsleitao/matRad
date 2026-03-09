@@ -87,13 +87,13 @@ for j = 1:numel(VOIs)
 
                 case strcmpi(parts{1}, 'sqOver') && numel(parts) == 3
                     dose = parseGy(parts{2});
-                    obj.className = 'DoseObjectives.matRad_Overdosing';
+                    obj.className = 'DoseObjectives.matRad_SquaredOverdosing';
                     obj.parameters = {dose};
                     obj.penalty = str2double(parts{3}) * penaltyScale;
 
                 case strcmpi(parts{1}, 'sqUnder') && numel(parts) == 3
                     dose = parseGy(parts{2});
-                    obj.className = 'DoseObjectives.matRad_Underdosing';
+                    obj.className = 'DoseObjectives.matRad_SquaredUnderdosing';
                     obj.parameters = {dose};
                     obj.penalty = str2double(parts{3}) * penaltyScale;
 

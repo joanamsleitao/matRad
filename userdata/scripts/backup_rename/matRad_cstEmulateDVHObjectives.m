@@ -103,6 +103,10 @@ for j = 1:numel(VOIs)
         end
 
         dose = dvhData.doseGrid(idx);
+
+        if strcmp(mode, 'mindvh')
+            dose = dose*1.05;
+        end
         metricStrings{m} = sprintf('D_%.0f %s %.2fGy %.1f', vol, mode, dose, penaltyFactor);
     end
 

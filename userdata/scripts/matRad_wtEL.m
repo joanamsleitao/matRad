@@ -141,7 +141,7 @@ yline(median(wPerEL), '--', 'median');
 topELStruct = struct;
 allELStruct = struct;
 
-for j = 1:numel(pks)
+for j = 1:numel(locs)
     centerE = locs(j);
     range = [centerE - wids(j)/2, centerE + wids(j)/2];
     for i = 1:nEL

@@ -1,5 +1,5 @@
-function [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, ...
-    doseWindow, boolPlotLegend, levelZoom, isoDoseLevels)
+function [slice, hleg, hCMap] = matRad_showSliceFast(ct, cst, doseCube, slice, ...
+    doseWindow, boolPlotLegend, levelZoom, isoDoseLevels, doseColorMap)
 % MATRAD_SHOWSLICEFAST - Quickly displays CT slice with dose overlay
 %
 % Syntax:  [slice, hleg] = matRad_showSliceF(ct, cst, doseCube, slice, doseWindow)
@@ -26,9 +26,16 @@ if ~exist('doseCube', 'var') || isempty(doseCube)
     doseCube = [];
 end
 
+if ~exist('doseColorMap', 'var') || isempty(doseColorMap)
+    doseColorMap = [];
+end
+
 if ~exist('slice', 'var') || isempty(slice)
     isoCenterIx = matRad_world2cubeIndex(matRad_getIsoCenter(cst,ct,0),ct);
     slice = isoCenterIx(3);
+else
+    isoCenterIx = matRad_world2cubeIndex(matRad_getIsoCenter(cst,ct,0),ct);
+    isoCenterIx(3) = slice;
 end
 
 if (~exist('doseWindow', 'var') || isempty(doseWindow)) && (exist('doseCube'))
@@ -40,10 +47,10 @@ if ~exist('boolPlotLegend', 'var') || isempty(boolPlotLegend)
 end
 
 if ~exist('levelZoom', 'var') || isempty(levelZoom)
-    levelZoom = 0;
+    levelZoom = [];
 end
 
-if ~exist('isoDoseLevels', 'var') || isempty(levelZoom)
+if ~exist('isoDoseLevels', 'var') || isempty(isoDoseLevels)
     isoDoseLevels = [];
 end
 
@@ -53,7 +60,8 @@ cubeIdx = 1;
 axesHandle = gca;
 if isempty(doseCube)
     %     hCt = matRad_plotCtSlice(axesHandle, ct.cubeHU, 1, plane, slice);
-    matRad_plotSliceWrapper(gca, ct, cst, cubeIdx, ...
+    % [~,hDose,hCt,hContour,hIsoDose] = ...
+        matRad_plotSliceWrapper(gca, ct, cst, cubeIdx, ...
         doseCube, plane, slice, [], ...
         [], [], [], [],...
         0, [], [], boolPlotLegend);
@@ -75,9 +83,9 @@ else
     %     [], doseWindow, [], [],...
     %     colorBarLabel, boolPlotLegend);
     
-        matRad_plotSliceWrapper(gca, ct, cst, cubeIdx, ...
+       [~,~,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(gca, ct, cst, cubeIdx, ...
         doseCube, plane, slice, [], ...
-        [], [], [], doseWindow,...
+        [], [], doseColorMap, doseWindow,...
         isoDoseLevels, [], colorBarLabel, boolPlotLegend);
     % matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx, ...
     % dose,plane,slice, thresh, ...
@@ -103,4 +111,7 @@ if ~isempty(levelZoom)
         set(axesHandle, 'XLim', xlimVals, 'YLim', ylimVals);
     end
 end
+
+fontsize(14, 'points');
+
 end

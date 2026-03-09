@@ -154,8 +154,15 @@ else
         matFilePath = fullfile(matFiles(1).folder, matFiles(1).name);
         fprintf('Loading existing .mat: %s\n', matFilePath);
         load(matFilePath, 'ct', 'cst', 'resultGUI');
+       
+    elseif numel(matFiles) > 1
+        matFilePath = fullfile(matFiles(1).folder, matFiles(1).name);
+        warning('Multiple files "%s" found under patient folder. Using first: %s', searchPath, matFiles(1).name);
+        fprintf('Loading existing .mat: %s\n', matFilePath);
+        load(matFilePath, 'ct', 'cst', 'resultGUI');
     else
-        error('Multiple .mat files match "%s". Please specify more clearly.', matchPattern);
+        error('Not found .mat files matching "%s".', matchPattern);
+        % error('File "%s" not found under patient folder "%s".', searchFile, patientFolder);
     end
 end
 

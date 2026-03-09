@@ -69,7 +69,7 @@ classdef matRad_OptimizerIPOPT < matRad_Optimizer
             obj.options.print_user_options            = 'no';
             obj.options.print_options_documentation   = 'no';
 
-            % Termination (C.2)
+% Termination (C.2)
             obj.options.tol                           = 1e-10; % (Opt1)
             obj.options.dual_inf_tol                  = 1e-4;    % (Opt2)
             obj.options.constr_viol_tol               = 1e-4; % (Opt3)
@@ -81,8 +81,8 @@ classdef matRad_OptimizerIPOPT < matRad_Optimizer
             obj.options.acceptable_dual_inf_tol       = 1e10; % (Acc4)
             obj.options.acceptable_compl_inf_tol      = 1e10; % (Acc5)
             obj.options.acceptable_obj_change_tol     = 1e-4; % (Acc6), Solved To Acceptable Level if (Acc1),...,(Acc6) fullfiled
-
-            obj.options.max_iter                      = matRad_cfg.defaults.propOpt.maxIter; % was 500! Joana, 16072025
+            
+            obj.options.max_iter                      = 500; % matRad_cfg.defaults.propOpt.maxIter; % was 500! Joana, 16072025
             obj.options.max_cpu_time                  = 7200;
 
             % Barrier Parameter (C.6)
