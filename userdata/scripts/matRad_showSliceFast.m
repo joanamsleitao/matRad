@@ -1,5 +1,5 @@
-function [slice, hleg, hCMap] = matRad_showSliceFast(ct, cst, doseCube, slice, ...
-    doseWindow, boolPlotLegend, levelZoom, isoDoseLevels, doseColorMap)
+function [slice, hleg] = matRad_showSliceFast(ct, cst, doseCube, slice, ...
+    doseWindow, boolPlotLegend, levelZoom, isoDoseLevels, doseColorMap, varargin)
 % MATRAD_SHOWSLICEFAST - Quickly displays CT slice with dose overlay
 %
 % Syntax:  [slice, hleg] = matRad_showSliceF(ct, cst, doseCube, slice, doseWindow)
@@ -21,6 +21,10 @@ function [slice, hleg, hCMap] = matRad_showSliceFast(ct, cst, doseCube, slice, .
 %
 % See also: matRad_plotSliceWrapper, matRadJoana_plotCTSlice
 %
+% p = inputParser;
+% addParameter(p, 'LineWidth', '1.5', @(s) ischar(s) || isstring(s));
+% parse(p, varargin{:});
+% opts = p.Results;
 
 if ~exist('doseCube', 'var') || isempty(doseCube)
     doseCube = [];
@@ -54,6 +58,11 @@ if ~exist('isoDoseLevels', 'var') || isempty(isoDoseLevels)
     isoDoseLevels = [];
 end
 
+% if ~exist('LineWidth', 'var') || isempty(LineWidth)
+%     LineWidth = 1.5;
+% end
+
+LineWidth = 3;
 plane = 3;
 cubeIdx = 1;
 % figure;
@@ -64,7 +73,7 @@ if isempty(doseCube)
         matRad_plotSliceWrapper(gca, ct, cst, cubeIdx, ...
         doseCube, plane, slice, [], ...
         [], [], [], [],...
-        0, [], [], boolPlotLegend);
+        0, [], [], boolPlotLegend, 'LineWidth', 2);
     % matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx, ...
     % dose,plane,slice, thresh, ...
     % alpha,contourColorMap, doseColorMap, doseWindow,
@@ -86,7 +95,7 @@ else
        [~,~,hCt,hContour,hIsoDose] = matRad_plotSliceWrapper(gca, ct, cst, cubeIdx, ...
         doseCube, plane, slice, [], ...
         [], [], doseColorMap, doseWindow,...
-        isoDoseLevels, [], colorBarLabel, boolPlotLegend);
+        isoDoseLevels, [], colorBarLabel, boolPlotLegend, 'LineWidth', 2);
     % matRad_plotSliceWrapper(axesHandle,ct,cst,cubeIdx, ...
     % dose,plane,slice, thresh, ...
     % alpha,contourColorMap, doseColorMap, doseWindow,

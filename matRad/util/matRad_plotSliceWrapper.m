@@ -70,6 +70,9 @@ end
 if ~exist('alpha','var') || isempty(alpha)
     alpha = [];
 end
+if ~exist('LineWidth','var') || isempty(LineWidth)
+    LineWidth = 1.5;
+end
 if ~exist('contourColorMap','var') || isempty(contourColorMap)
     contourColorMap = [];
 end
@@ -125,7 +128,8 @@ end
 %plot VOI contours
 if  ~isempty(cst)
 
-    [hContour,~] = matRad_plotVoiContourSlice(axesHandle,cst,ct,cubeIdx,voiSelection,plane,slice,contourColorMap,varargin{:});
+    [hContour,~] = matRad_plotVoiContourSlice(axesHandle,cst,ct,cubeIdx, ...
+        voiSelection,plane,slice,contourColorMap,varargin{:});
 
     if boolPlotLegend
         visibleOnSlice = (~cellfun(@isempty,hContour));

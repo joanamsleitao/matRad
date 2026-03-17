@@ -18,6 +18,7 @@ function voxelMask = matRad_VOIDoseThrMask(cst, doseCube, voiSelection, doseThre
 %
 % Author: Joana Leitão + GPT-5, 2025
 % -------------------------------------------------------------------------
+if nargin < 5 || isempty(verbose), verbose = false; end
 
 voxelMask = false(size(doseCube));
 
@@ -32,5 +33,7 @@ for i = 1:size(cst,1)
     voxelMask(indices(aboveThreshold)) = true;
 end
 
-fprintf('Identified %d voxels above %.1f Gy in selected VOIs.\n', nnz(voxelMask), doseThreshold);
+if verbose  
+    fprintf('Identified %d voxels above %.1f Gy in selected VOIs.\n', nnz(voxelMask), doseThreshold);  
+end
 end

@@ -60,7 +60,7 @@ firstDVH = dvhMulti.(sourceNames{1});
 voiNames = {firstDVH.name}.';
 numVois  = numel(voiNames);
 
-lineStyles = {'-', '--', ':', '-.'};
+lineStyles = {'-', ':', '-.', '--'};
 if numSources > numel(lineStyles)
     warning('More sources than line styles available. Reusing styles.');
     lineStyles = repmat(lineStyles, 1, ceil(numSources/numel(lineStyles)));

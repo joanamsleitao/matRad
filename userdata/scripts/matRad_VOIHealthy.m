@@ -61,7 +61,7 @@ function [healthyMask, cstNew, healthyAboveThrMask] = matRad_VOIHealthy( ...
 % Date: 2025-12-04_0000
 % -------------------------------------------------------------------------
 
-    %% Defaults
+    %% Defaults   
     if nargin < 3 || isempty(doseThreshold)
         doseThreshold = 10;
     end
@@ -69,11 +69,13 @@ function [healthyMask, cstNew, healthyAboveThrMask] = matRad_VOIHealthy( ...
         includeTargets = false;
     end
     if nargin < 5 || isempty(minIslandVox3D)
-        minIslandVox3D = 3;  % local 3D neighborhood size (voxels)
+        minIslandVox3D = 1;  % local 3D neighborhood size (voxels)
     end
     if nargin < 6 || isempty(minAreaVox2D)
-        minAreaVox2D = 3;    % per-slice 2D minimum area (voxels)
+        minAreaVox2D = 1;    % per-slice 2D minimum area (voxels)
     end
+
+    if nargin < 7 || isempty(verbose), verbose = false; end
 
     %% Basic dose-based masks
     doseMask = doseCube > 0;

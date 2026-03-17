@@ -1,16 +1,23 @@
 function out = matRad_FLASHROIvsDMF(patientIDs, varargin)
-% matRad_calcSpineD2vsDMF - Compute Spine D2 vs DMF curves for multiple patients
+% matRad_FLASHROIvsDMF - Compute Spine D2 vs DMF curves and FLASH ROI mask/delta-dose stats
 %
 % Syntax:
-%   out = matRad_calcSpineD2vsDMF(patientIDs)
-%   out = matRad_calcSpineD2vsDMF(patientIDs, 'dmfStep', 0.05)
-%   out = matRad_calcSpineD2vsDMF(patientIDs, 'dmfRange', [1.1 1.8], 'doseThresholdsGy', [4 6 8])
+%   out = matRad_FLASHROIvsDMF(patientIDs)
+%   out = matRad_FLASHROIvsDMF(patientIDs, 'dmfStep', 0.05)
+%   out = matRad_FLASHROIvsDMF(patientIDs, 'dmfRange', [1.1 1.8], 'doseThresholdsGy', [4 6 8])
 %
 % Description:
-%   Loads dose components via loadPatientICR(patientID,'rescaled'), then computes:
+%   Loads rescaled dose components via loadPatientICR(patientID,'rescaled'),
+%   then computes:
 %     - constant D2(spine) for Arc and combinedNoDMF
-%     - variable D2(spine) for DMF sweep applied only to FLASH component, for
-%       multiple thresholds (4/6/8 Gy) on flashNoDMF dose.
+%     - variable D2(spine) for a DMF sweep applied only to FLASH component,
+%       for multiple thresholds on flashNoDMF dose.
+%
+%   Additionally, for each threshold it stores:
+%     - FLASH mask size and fraction of whole volume
+%     - overlap of FLASH mask with spine VOI
+%     - baseline FLASH dose stats inside mask (mean/max)
+%     - delta-dose stats inside mask vs DMF (mean/max/sum in Gy·voxel)
 %
 % Inputs:
 %   patientIDs - char/string (single) OR cellstr/string array
@@ -19,9 +26,9 @@ function out = matRad_FLASHROIvsDMF(patientIDs, varargin)
 %   'doseThresholdsGy' - [4 6 8] by default
 %   'dmfRange'         - [1.1 1.8] by default
 %   'dmfStep'          - 0.05 by default
-%   'spineAliases'     - aliases for matRad_VOIFindIx (default prefers spinal cord)
-%   'minIslandVox3D'   - default 3
-%   'minAreaVox2D'     - default 3
+%   'spineAliases'     - aliases for matRad_VOIFindIx (kept for error messaging)
+%   'minIslandVox3D'   - (parsed, currently not passed through; reserved)
+%   'minAreaVox2D'     - (parsed, currently not passed through; reserved)
 %   'includeHealthy'   - default true
 %
 % Outputs:
@@ -34,18 +41,24 @@ function out = matRad_FLASHROIvsDMF(patientIDs, varargin)
 %         .D2.Arc
 %         .D2.combinedNoDMF
 %         .D2.curves.thr_XGy.doseThresholdGy
-%         .D2.curves.thr_XGy.values  (1 x nDMF)
+%         .D2.curves.thr_XGy.values              (1 x nDMF)
+%         .maskStats.thr_XGy.doseThresholdGy
+%         .maskStats.thr_XGy.nVoxMask
+%         .maskStats.thr_XGy.fracAll
+%         .maskStats.thr_XGy.nVoxSpineOverlap
+%         .maskStats.thr_XGy.fracSpine
+%         .maskStats.thr_XGy.baseFlashMeanGy
+%         .maskStats.thr_XGy.baseFlashMaxGy
+%         .maskStats.thr_XGy.delta.meanGy        (1 x nDMF)
+%         .maskStats.thr_XGy.delta.maxGy         (1 x nDMF)
+%         .maskStats.thr_XGy.delta.sumGyVox      (1 x nDMF)
 %
 % Reference entry:
-% | `matRad_calcSpineD2vsDMF` | `matRad_calcSpineD2vsDMF` | Compute spine D2 vs DMF sweep | `out = matRad_calcSpineD2vsDMF({'Sp01','Sp02'})` | 🟢 |
+% | `matRad_FLASHROIvsDMF` | `matRad_FLASHROIvsDMF` | Spine D2 vs DMF + FLASH ROI stats | `out = matRad_FLASHROIvsDMF({'Sp01','Sp02'})` | 🟢 |
 %
 % -------------------------------------------------------------------------
 % Author: Joana Leitão
 % -------------------------------------------------------------------------
-%
-% minIslandVox3D = 3;     % min 3D connected component size (voxels)
-% minAreaVox2D   = 3;     % min 2D area threshold per-slice (voxels)
-% includeHealthy = true;  % allow mask in non-target healthy tissue
 
 %% Options
 p = inputParser;
@@ -54,8 +67,8 @@ p.addParameter('dmfRange', [1.1 1.8], @(x) isnumeric(x) && numel(x)==2 && all(is
 p.addParameter('dmfStep', 0.05, @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x>0);
 p.addParameter('spineAliases', {'SpinalCord','spinal cord','spinalcord','SpineCanal','spine canal','spine'}, ...
     @(x) ischar(x) || isstring(x) || iscell(x));
-p.addParameter('minIslandVox3D', 3, @(x) isnumeric(x) && isscalar(x) && x>=0);
-p.addParameter('minAreaVox2D', 3, @(x) isnumeric(x) && isscalar(x) && x>=0);
+p.addParameter('minIslandVox3D', 3, @(x) isnumeric(x) && isscalar(x) && x>=0); %#ok<NASGU>
+p.addParameter('minAreaVox2D', 3, @(x) isnumeric(x) && isscalar(x) && x>=0); %#ok<NASGU>
 p.addParameter('includeHealthy', true, @(x) islogical(x) && isscalar(x));
 p.parse(varargin{:});
 opts = p.Results;
@@ -66,7 +79,7 @@ if isempty(patientIDs)
     error('patientIDs cannot be empty.');
 end
 
-doseThresholdsGy = unique(opts.doseThresholdsGy(:)','stable');
+doseThresholdsGy = unique(opts.doseThresholdsGy(:)', 'stable');
 dmfVals = opts.dmfRange(1):opts.dmfStep:opts.dmfRange(2);
 dmfVals = round(dmfVals, 10);
 
@@ -80,7 +93,8 @@ out = repmat(struct( ...
     'spineVoiName', '', ...
     'D2', struct('Arc', NaN, 'combinedNoDMF', NaN, 'curves', struct()), ...
     'dmf', struct('values', dmfVals, 'range', opts.dmfRange, 'step', opts.dmfStep), ...
-    'thresholdsGy', doseThresholdsGy), nP, 1);
+    'thresholdsGy', doseThresholdsGy, ...
+    'maskStats', struct()), nP, 1);
 
 %% Loop patients
 for iP = 1:nP
@@ -90,7 +104,7 @@ for iP = 1:nP
     % Load rescaled dose components
     [~, cst, dosesRes] = loadPatientICR(patientID, 'rescaled'); %#ok<ASGLU>
     dosesRes.combinedNoDMF = dosesRes.compArc + dosesRes.flashNoDMF;
-    
+
     % Find spine VOI (prefer SpinalCord)
     ixSpine = matRad_VOIFindIx(cst, 'Cord');
     if isempty(ixSpine) || ~isscalar(ixSpine)
@@ -100,36 +114,60 @@ for iP = 1:nP
     out(iP).spineVoiIx   = ixSpine;
     out(iP).spineVoiName = string(cst{ixSpine,2});
 
+    spineMask = cst{ixSpine,4}{1};
+    spineMask = logical(spineMask);
+    nVoxSpine = nnz(spineMask);
+
     % Dose fields needed
-    local_assertFieldsExist(dosesRes, {'Arc','combinedNoDMF','compArc','flashNoDMF'}, sprintf('dosesRes (%s)', patientID));
+    local_assertFieldsExist(dosesRes, {'Arc','combinedNoDMF','compArc','flashNoDMF'}, ...
+        sprintf('dosesRes (%s)', patientID));
 
     % Constants
     out(iP).D2.Arc           = matRad_getDx(cst(ixSpine, :), dosesRes.Arc, 1, 2);
     out(iP).D2.combinedNoDMF = matRad_getDx(cst(ixSpine, :), dosesRes.combinedNoDMF, 1, 2);
 
-    % Threshold curves
+    % Threshold curves + stats
     for iT = 1:nThr
         thrGy = doseThresholdsGy(iT);
+        thrField = local_thrFieldName(thrGy);
 
         % FLASH mask from flashNoDMF at this threshold
         [flashMask, ~, ~] = matRad_flashVoxels( ...
-            cst, dosesRes.flashNoDMF, thrGy, [], ...
-            opts.includeHealthy, 1, 1);
+            cst, dosesRes.flashNoDMF, thrGy, ixSpine, ...
+            opts.includeHealthy);
 
+        flashMask = logical(flashMask);
+
+        % --- Threshold effect (DMF-independent)
+        nVoxMask = nnz(flashMask);
+        
+        % --- Allocate curves
         d2vals = nan(size(dmfVals));
-        for iD = 1:numel(dmfVals)
-            dmf = dmfVals(iD);
 
-            flashWithDMF = matRad_flashApplyDMF(dosesRes.flashNoDMF, flashMask, dmf);
-            doseTot      = dosesRes.compArc + flashWithDMF;
+        if nVoxMask == 0
+            % Dose is unchanged relative to combinedNoDMF for any DMF
+            d2vals(:) = out(iP).D2.combinedNoDMF;
+        else
+            for iD = 1:numel(dmfVals)
+                dmf = dmfVals(iD);
 
-            d2vals(iD) = matRad_getDx(cst(ixSpine, :), doseTot, 1, 2);
+                flashWithDMF = matRad_flashApplyDMF(dosesRes.flashNoDMF, flashMask, dmf);
+                doseTot      = dosesRes.compArc + flashWithDMF;
 
+                d2vals(iD) = matRad_getDx(cst(ixSpine, :), doseTot, 1, 2);
+            end
         end
 
-        thrField = local_thrFieldName(thrGy);
+        % Store D2 curve
         out(iP).D2.curves.(thrField).doseThresholdGy = thrGy;
         out(iP).D2.curves.(thrField).values          = d2vals;
+
+        % Store stats
+        out(iP).maskStats.(thrField).doseThresholdGy  = thrGy;
+        out(iP).maskStats.(thrField).nVoxMask         = nVoxMask;
+        % 
+        % fprintf(['Threshold %s, %s in total voxels changed; \n'], ...
+        %     num2str(thrGy), nVoxMask);
     end
 end
 
