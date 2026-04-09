@@ -1,4 +1,4 @@
-ffunction [stf_oneEL, stf_mb, stf_sb] = matRad_genStf1EL(ct, cst, pln)
+function [stf_oneEL, stf_mb, stf_sb] = matRad_genStf1EL(ct, cst, pln)
 % matRadJoana_generateStfOneEL - Create STF with one energy layer per ray
 %
 % Syntax:
@@ -52,8 +52,8 @@ list = []; % empty
 for j = 1:stf.numOfRays
     % if j==111
     if (stf.ray(j).rayPos_bev(2)~=0 || stf.ray(j).rayPos_bev(3)~=0)
-% tmp.ray(j) = [];
-  list = [list; j]; % save all rows that have (x, 0, 0) coordinates
+        % tmp.ray(j) = [];
+        list = [list; j]; % save all rows that have (x, 0, 0) coordinates
     end
     % end
 end
@@ -84,4 +84,5 @@ stf.totalNumOfBixels = sum(stf.numOfBixelsPerRay(:));
 
 %%
 stf_oneEL = stf;
+
 end

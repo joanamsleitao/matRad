@@ -164,7 +164,7 @@ for runVoi = 1:size(cst,1)
                 %                    qi(runVoi).(['CI_' StringReferenceDose 'Gy']),qi(runVoi).(['HI_' StringReferenceDose 'Gy']),referenceDose);
             end
             % Homogeneity (ratio): (D5 - D95) / D95
-            qi(runVoi).(['HI_V50']) = (DX(5) - DX(95))/DX(50) * 100;
+            qi(runVoi).(['HI_V50']) = round((DX(5) - DX(95))/DX(50), 2);
 
         end
         %We do it this way so the percentages in the string are not interpreted as format specifiers

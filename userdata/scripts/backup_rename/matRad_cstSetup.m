@@ -18,6 +18,9 @@ function [cst, prescribedDose, ixPTV, ixExternal] = matRad_cstSetup(cst, VOIName
 %
 % Author: Joana Leitão + GPT-5, 2025
 % -------------------------------------------------------------------------
+if isempty(VOINames) && isempty(VOISites)
+    VOINames = parseStructureFile('VOINames_General.txt');
+end
 
 if nargin < 4
     mode = '';

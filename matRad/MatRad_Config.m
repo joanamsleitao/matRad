@@ -227,7 +227,7 @@ classdef MatRad_Config < handle
             obj.defaults.propDoseCalc.useGivenEqDensityCube = false; %Use the given density cube ct.cube and omit conversion from cubeHU.
             obj.defaults.propDoseCalc.ignoreOutsideDensities = true; %Ignore densities outside of cst contours
             obj.defaults.propDoseCalc.useCustomPrimaryPhotonFluence = false; %Use a custom primary photon fluence
-            obj.defaults.propDoseCalc.calcLET = true; %calculate LETs for particles
+            obj.defaults.propDoseCalc.calcLET = false; %calculate LETs for particles
             obj.defaults.propDoseCalc.selectVoxelsInScenarios = 'all';
             obj.defaults.propDoseCalc.airOffsetCorrection = true;
             % default properties for fine sampling calculation
@@ -243,7 +243,7 @@ classdef MatRad_Config < handle
             obj.defaults.propOpt.optimizer = 'IPOPT';
             obj.defaults.propOpt.maxIter = 500;
             obj.defaults.propOpt.runDAO = 0;
-            obj.defaults.propOpt.clearUnusedVoxels = false;
+            obj.defaults.propOpt.clearUnusedVoxels = false; % was false
 
             %Sequencing Options
             obj.defaults.propSeq.sequencer = 'siochi';

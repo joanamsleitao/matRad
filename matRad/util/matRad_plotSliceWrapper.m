@@ -129,7 +129,7 @@ end
 if  ~isempty(cst)
 
     [hContour,~] = matRad_plotVoiContourSlice(axesHandle,cst,ct,cubeIdx, ...
-        voiSelection,plane,slice,contourColorMap,varargin{:});
+        voiSelection,plane,slice,contourColorMap, 'LineWidth', LineWidth, varargin{:});
 
     if boolPlotLegend
         visibleOnSlice = (~cellfun(@isempty,hContour));

@@ -171,11 +171,18 @@ for thisPlane = plane
             isoCenterIx = matRad_world2cubeIndex(matRad_getIsoCenter(cst,ct,0),ct);
             isoCenterIx(3) = sliceNumber;
             hold on;
+            doseColorMap = [];
+            %             M = 30;
+            % doseWindow = [0 M];
+            %
+            % doseColorMap = matRad_doseMapFixed();
+            % tTicks = 0:3:M;
 
             % Plot slice
             matRad_plotSliceWrapper(gca, ct, cstHandle, 1, doseCube, ...
-                thisPlane, sliceNumber, [], [], [], [], [0 75]);
-
+                thisPlane, sliceNumber, [], [], [], ...
+                doseColorMap, [], [],[],[],[], ...
+                'LineWidth',5);
             % Highlight altered slices in the axial plane
             if thisPlane == 3 && ismember(sliceNumber, alteredSlices)
                 title(sprintf('Slice %d *', sliceNumber), ...
@@ -185,7 +192,7 @@ for thisPlane = plane
                     'Color', matRad_cfg.gui.textColor);
             end
 
-            [xlimVals, ylimVals] = matRad_getZoomWindow(isoCenterIx(2), isoCenterIx(1), ct, 0.75);
+            [xlimVals, ylimVals] = matRad_getZoomWindow(isoCenterIx(2), isoCenterIx(1), ct, 0.95);
             if xlimVals(1) ~= xlimVals(2) && ylimVals(1) ~= ylimVals(2)
                 set(gca, 'XLim', xlimVals, 'YLim', ylimVals);
             else
