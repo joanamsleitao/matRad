@@ -192,7 +192,7 @@ for thisPlane = plane
                     'Color', matRad_cfg.gui.textColor);
             end
 
-            [xlimVals, ylimVals] = matRad_getZoomWindow(isoCenterIx(2), isoCenterIx(1), ct, 0.95);
+            [xlimVals, ylimVals] = matRad_getZoomWindow(isoCenterIx(2), isoCenterIx(1), ct, 0.5);
             if xlimVals(1) ~= xlimVals(2) && ylimVals(1) ~= ylimVals(2)
                 set(gca, 'XLim', xlimVals, 'YLim', ylimVals);
             else

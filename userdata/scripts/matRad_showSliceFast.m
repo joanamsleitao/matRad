@@ -51,7 +51,7 @@ if ~exist('boolPlotLegend', 'var') || isempty(boolPlotLegend)
 end
 
 if ~exist('levelZoom', 'var') || isempty(levelZoom)
-    levelZoom = [];
+    levelZoom = 0.8;
 end
 
 if ~exist('isoDoseLevels', 'var') || isempty(isoDoseLevels)

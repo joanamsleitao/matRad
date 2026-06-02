@@ -1,4 +1,4 @@
-function fig = matRad_showDVHAdapted(dvhInput, cst, varargin)
+function [fig, ax, lgd] = matRad_showDVHAdapted(dvhInput, cst, varargin)
 % MATRAD_SHOWDVH - Plot DVHs from single or multiple sources for each VOI
 %
 % Syntax:
@@ -153,6 +153,8 @@ if plotLegend
         'Location', 'NorthEast', 'AutoUpdate', 'off');
     lgd.FontSize = matRad_cfg.gui.fontSize;
     lgd.TextColor = matRad_cfg.gui.textColor;
+else 
+    lgd = [];
 end
 
 hold(ax, 'off');

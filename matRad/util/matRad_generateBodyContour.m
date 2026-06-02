@@ -37,7 +37,7 @@ end
 if nargin < 3
     thresholdHU = -500;
 end
-% visualize Histogram
+% % visualize Histogram
 % figure,
 % histogram(ct.cubeHU{1});
 % hold on

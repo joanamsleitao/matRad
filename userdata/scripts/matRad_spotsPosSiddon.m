@@ -31,14 +31,14 @@ function [stf] = matRad_spotsPosSiddon(ct, stf, machine)
 %%
 % Load machine if not provided
 if nargin < 3 || isempty(machine)
-    machineFileName = append(stf.radiationMode, '_', stf.machine);
+    machineFileName = append(stf(1).radiationMode, '_', stf(1).machine);
     machine = load(machineFileName);
     machine = machine.machine;
 end
 
 % Ensure CT has water-equivalent density computed
 if ~isfield(ct, 'cube') || isempty(ct.cube)
-    ct = matRad_calcWaterEqD(ct, stf.radiationMode);  % Compute WEPL if missing
+    ct = matRad_calcWaterEqD(ct, stf(1).radiationMode);  % Compute WEPL if missing
 end
 
 % Ensure STF has SSD computed

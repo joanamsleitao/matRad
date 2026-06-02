@@ -149,7 +149,7 @@ Key rule:
 | matRad_plotE...StackedW | matRad_plotELhistWStack | Plot stacked histogram of weights per EL | `matRad_plotELhistSwt(ax, stf)` | 🟢 |
 | matRad_plotE...H | matRad_plotELwtHist | Plot total spot weights per EL | `matRad_plotELwtHist(ax, stf, 'perBeam')` | 🟢 |
 | matRad_plotGeoSpot | matRad_plotGeoSpot | Plot spot geometry visualization | `matRad_plotGeo(ct, stf, iBeam)` | 🟡 |
-| matRad_plotSingleRay | matRad_plotRay | Visualize spots from specific ray index | `medianSpotCube = matRad_plotRay(ax, stf, iRayTarget, markerSize, weights, useGeoSpots)` | 🟢 |
+% | `matRad_plotSingleRay` | `matRad_plotRay` | Visualize spots from one selected beam-ray pair | `medianSpotCube = matRad_plotRay(ax, stf, iBeam, iRay, markerSize, weights, useGeoSpots)` | 🟢 |
 | matRad_removeSpotsOverlappingVOIs | matRad_rmSpotsVOI | Remove spots overlapping VOIs; return retained mask & indices | `[logicalMask, removedIdx] = matRad_rmSpotsVOI(stf, ct, cst, ixVOI, iBeam)` | 🟢 |
 | matRad_spotIx | matRad_spotIx | Compute global 1D index of a spot | `ix = matRad_spotIx(stf, iBeam, iRay, iSpot)` | 🟢 |
 | matRad_calcSpotW... | matRad_spotWeight | Normalizes and assigns spot weights, and constructs a 3D weight matrix | `[stf, wMatrix] = matRad_calcSpotWeightsAndMatrix(stf, weights)` | 🟢 |
